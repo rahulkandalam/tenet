@@ -9,38 +9,188 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as VerdictRouteImport } from './routes/verdict'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as EvaluateRouteImport } from './routes/evaluate'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RulebookIndexRouteImport } from './routes/rulebook.index'
+import { Route as RulebookNewRouteImport } from './routes/rulebook.new'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerdictRoute = VerdictRouteImport.update({
+  id: '/verdict',
+  path: '/verdict',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EvaluateRoute = EvaluateRouteImport.update({
+  id: '/evaluate',
+  path: '/evaluate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RulebookIndexRoute = RulebookIndexRouteImport.update({
+  id: '/rulebook/',
+  path: '/rulebook/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RulebookNewRoute = RulebookNewRouteImport.update({
+  id: '/rulebook/new',
+  path: '/rulebook/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/evaluate': typeof EvaluateRoute
+  '/history': typeof HistoryRoute
+  '/home': typeof HomeRoute
+  '/settings': typeof SettingsRoute
+  '/verdict': typeof VerdictRoute
+  '/welcome': typeof WelcomeRoute
+  '/rulebook/new': typeof RulebookNewRoute
+  '/rulebook/': typeof RulebookIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/evaluate': typeof EvaluateRoute
+  '/history': typeof HistoryRoute
+  '/home': typeof HomeRoute
+  '/settings': typeof SettingsRoute
+  '/verdict': typeof VerdictRoute
+  '/welcome': typeof WelcomeRoute
+  '/rulebook/new': typeof RulebookNewRoute
+  '/rulebook': typeof RulebookIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/evaluate': typeof EvaluateRoute
+  '/history': typeof HistoryRoute
+  '/home': typeof HomeRoute
+  '/settings': typeof SettingsRoute
+  '/verdict': typeof VerdictRoute
+  '/welcome': typeof WelcomeRoute
+  '/rulebook/new': typeof RulebookNewRoute
+  '/rulebook/': typeof RulebookIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/evaluate'
+    | '/history'
+    | '/home'
+    | '/settings'
+    | '/verdict'
+    | '/welcome'
+    | '/rulebook/new'
+    | '/rulebook/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/evaluate'
+    | '/history'
+    | '/home'
+    | '/settings'
+    | '/verdict'
+    | '/welcome'
+    | '/rulebook/new'
+    | '/rulebook'
+  id:
+    | '__root__'
+    | '/'
+    | '/evaluate'
+    | '/history'
+    | '/home'
+    | '/settings'
+    | '/verdict'
+    | '/welcome'
+    | '/rulebook/new'
+    | '/rulebook/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EvaluateRoute: typeof EvaluateRoute
+  HistoryRoute: typeof HistoryRoute
+  HomeRoute: typeof HomeRoute
+  SettingsRoute: typeof SettingsRoute
+  VerdictRoute: typeof VerdictRoute
+  WelcomeRoute: typeof WelcomeRoute
+  RulebookNewRoute: typeof RulebookNewRoute
+  RulebookIndexRoute: typeof RulebookIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verdict': {
+      id: '/verdict'
+      path: '/verdict'
+      fullPath: '/verdict'
+      preLoaderRoute: typeof VerdictRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evaluate': {
+      id: '/evaluate'
+      path: '/evaluate'
+      fullPath: '/evaluate'
+      preLoaderRoute: typeof EvaluateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +198,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rulebook/': {
+      id: '/rulebook/'
+      path: '/rulebook'
+      fullPath: '/rulebook/'
+      preLoaderRoute: typeof RulebookIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rulebook/new': {
+      id: '/rulebook/new'
+      path: '/rulebook/new'
+      fullPath: '/rulebook/new'
+      preLoaderRoute: typeof RulebookNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EvaluateRoute: EvaluateRoute,
+  HistoryRoute: HistoryRoute,
+  HomeRoute: HomeRoute,
+  SettingsRoute: SettingsRoute,
+  VerdictRoute: VerdictRoute,
+  WelcomeRoute: WelcomeRoute,
+  RulebookNewRoute: RulebookNewRoute,
+  RulebookIndexRoute: RulebookIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
