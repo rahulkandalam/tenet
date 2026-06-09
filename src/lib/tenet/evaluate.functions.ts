@@ -69,7 +69,8 @@ ${data.latest}
             { role: "user", content: userContent },
           ],
           response_format: { type: "json_object" },
-          max_completion_tokens: 1800,
+          max_completion_tokens: 4000,
+          reasoning_effort: "low",
         }),
         signal: AbortSignal.timeout(59000),
       });
@@ -96,7 +97,24 @@ ${data.latest}
       throw new Error(`OpenAI ${res.status}: ${txt.slice(0, 300)}`);
     }
     const j = await res.json();
-    const content: string = j?.choices?.[0]?.message?.content ?? "";
+    const choice = j?.choices?.[0];
+    const content: string = choice?.message?.content ?? "";
+    const finishReason: string = choice?.finish_reason ?? "";
+    console.log("[evaluateTrade] finish_reason:", finishReason, "usage:", j?.usage, "content_len:", content.length);
+    if (!content) {
+      if (finishReason === "length") {
+        return {
+          content: "",
+          error: "timeout",
+          message: "Tenet's response was cut off (token limit). Please try a shorter trade note.",
+        };
+      }
+      return {
+        content: "",
+        error: "timeout",
+        message: "Tenet returned an empty response. Please try again.",
+      };
+    }
     return { content };
   });
 
