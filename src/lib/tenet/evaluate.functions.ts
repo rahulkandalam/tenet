@@ -55,6 +55,7 @@ ${data.latest}
         response_format: { type: "json_object" },
         max_completion_tokens: 6000,
       }),
+      signal: AbortSignal.timeout(55000),
     });
 
     if (!res.ok) {
