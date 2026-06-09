@@ -17,7 +17,9 @@ type EvaluationResult =
 function isTimeoutError(error: unknown) {
   const name = error instanceof Error ? error.name : "";
   const message = error instanceof Error ? error.message : String(error);
-  return name === "TimeoutError" || name === "AbortError" || /timeout|timed out|aborted/i.test(message);
+  return (
+    name === "TimeoutError" || name === "AbortError" || /timeout|timed out|aborted/i.test(message)
+  );
 }
 
 export const evaluateTrade = createServerFn({ method: "POST" })
@@ -27,7 +29,9 @@ export const evaluateTrade = createServerFn({ method: "POST" })
     if (!key) throw new Error("OPENAI_API_KEY is not configured");
 
     const historyText = data.history
-      .map((m) => `  ${m.role === "user" ? "Trader" : "Tenet"}: "${m.content.replace(/"/g, '\\"')}"`)
+      .map(
+        (m) => `  ${m.role === "user" ? "Trader" : "Tenet"}: "${m.content.replace(/"/g, '\\"')}"`,
+      )
       .join("\n");
 
     const userText = `<RULEBOOK>
@@ -105,7 +109,11 @@ export const transcribeAudio = createServerFn({ method: "POST" })
     if (!key) throw new Error("OPENAI_API_KEY is not configured");
 
     const bin = Uint8Array.from(atob(data.audioBase64), (c) => c.charCodeAt(0));
-    const ext = data.mimeType.includes("mp4") ? "mp4" : data.mimeType.includes("ogg") ? "ogg" : "webm";
+    const ext = data.mimeType.includes("mp4")
+      ? "mp4"
+      : data.mimeType.includes("ogg")
+        ? "ogg"
+        : "webm";
     const blob = new Blob([bin], { type: data.mimeType });
     const form = new FormData();
     form.append("file", blob, `recording.${ext}`);
