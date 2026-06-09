@@ -20,8 +20,15 @@ const INITIAL: ChatEntry = { kind: "text", role: "assistant", content: "What's t
 
 function parseResponse(raw: string): EvalResponse | null {
   let txt = raw.trim();
-  txt = txt.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "");
-  try { return JSON.parse(txt) as EvalResponse; } catch { return null; }
+  txt = txt
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```\s*$/i, "");
+  try {
+    return JSON.parse(txt) as EvalResponse;
+  } catch {
+    return null;
+  }
 }
 
 function blobToBase64(blob: Blob): Promise<string> {
@@ -133,18 +140,25 @@ function EvaluatePage() {
       const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "";
       const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
       chunksRef.current = [];
-      rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
       rec.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: rec.mimeType || "audio/webm" });
         streamRef.current?.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
-        if (blob.size === 0) { setMicState("idle"); return; }
+        if (blob.size === 0) {
+          setMicState("idle");
+          return;
+        }
         setMicState("stopped");
         setTimeout(() => setMicState("idle"), 400);
         setTranscribing(true);
         try {
           const b64 = await blobToBase64(blob);
-          const { text } = await callTranscribe({ data: { audioBase64: b64, mimeType: blob.type } });
+          const { text } = await callTranscribe({
+            data: { audioBase64: b64, mimeType: blob.type },
+          });
           const shouldSendImmediately = sendOnStopRef.current;
           sendOnStopRef.current = false;
           if (shouldSendImmediately && text.trim()) {
@@ -186,7 +200,10 @@ function EvaluatePage() {
     const text = (textOverride ?? input).trim();
     if (!text || loading) return;
     const rb = loadRulebook();
-    if (!rb) { toast.error("No rulebook found"); return; }
+    if (!rb) {
+      toast.error("No rulebook found");
+      return;
+    }
     const currentImageIds = attachedImages.map((i) => i.id);
     const newEntries: ChatEntry[] = [...entries, { kind: "text", role: "user", content: text }];
     setEntries(newEntries);
@@ -205,18 +222,13 @@ function EvaluatePage() {
         latest: text,
         images: attachedImages.map((i) => ({ dataUrl: i.dataUrl })),
       };
-      const isTimeout = (err: unknown) => {
-        const m = err instanceof Error ? err.message : String(err);
-        return /timeout|timed out|504|aborted/i.test(m);
-      };
-      let content: string;
-      try {
-        ({ content } = await callEval({ data: payload }));
-      } catch (err) {
-        if (!isTimeout(err)) throw err;
-        toast.message("Tenet is taking longer than usual — retrying...");
-        ({ content } = await callEval({ data: payload }));
+      const result = await callEval({ data: payload });
+      if (result.error === "timeout") {
+        toast.error(result.message);
+        setEntries(newEntries);
+        return;
       }
+      const { content } = result;
       const parsed = parseResponse(content);
       if (!parsed) {
         toast.error("Tenet's response couldn't be read. Try again.");
@@ -224,13 +236,18 @@ function EvaluatePage() {
         return;
       }
       setLatest(parsed);
-      const aiText = parsed.verdict_word === "PROMPT"
-        ? (parsed.follow_up_question || parsed.summary || "Tell me more.")
-        : "OK, that's everything I need. Ready when you are.";
+      const aiText =
+        parsed.verdict_word === "PROMPT"
+          ? parsed.follow_up_question || parsed.summary || "Tell me more."
+          : "OK, that's everything I need. Ready when you are.";
       // heuristic: does AI reference chart?
-      const refsChart = /chart shows|i can see|the image|in the chart|on the chart/i.test(aiText) ||
+      const refsChart =
+        /chart shows|i can see|the image|in the chart|on the chart/i.test(aiText) ||
         /chart shows|i can see|the image|in the chart|on the chart/i.test(parsed.summary || "");
-      const refImageId = refsChart && currentImageIds.length ? currentImageIds[currentImageIds.length - 1] : undefined;
+      const refImageId =
+        refsChart && currentImageIds.length
+          ? currentImageIds[currentImageIds.length - 1]
+          : undefined;
       if (refImageId) setReferencedIds((p) => new Set(p).add(refImageId));
       setEntries([...newEntries, { kind: "text", role: "assistant", content: aiText, refImageId }]);
     } catch (e) {
@@ -255,17 +272,24 @@ function EvaluatePage() {
 
   const runVerdict = () => {
     if (!latest) return;
-    try { sessionStorage.setItem("tenet_verdict", JSON.stringify(latest)); } catch {}
+    try {
+      sessionStorage.setItem("tenet_verdict", JSON.stringify(latest));
+    } catch {
+      // Ignore storage failures and still navigate with the in-memory verdict state.
+    }
     navigate({ to: "/verdict" });
   };
 
   const isFinal = latest && latest.verdict_word !== "PROMPT";
-  const canSend = (input.trim().length > 0 || micState === "recording") && !loading && !transcribing;
+  const canSend =
+    (input.trim().length > 0 || micState === "recording") && !loading && !transcribing;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="h-12 px-5 flex items-center justify-between border-b border-border bg-surface">
-        <button onClick={onBack} className="text-[14px] text-ink-secondary hover:text-ink">← Back to Home</button>
+        <button onClick={onBack} className="text-[14px] text-ink-secondary hover:text-ink">
+          ← Back to Home
+        </button>
         <div className="text-[14px] text-ink-secondary flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-teal inline-block" /> Evaluating your idea
         </div>
@@ -274,7 +298,10 @@ function EvaluatePage() {
 
       <div className="flex-1 flex min-h-0">
         {/* Chat 60% */}
-        <div className="flex-1 flex flex-col min-w-0 border-r border-border" style={{ flexBasis: "60%" }}>
+        <div
+          className="flex-1 flex flex-col min-w-0 border-r border-border"
+          style={{ flexBasis: "60%" }}
+        >
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
             <div className="max-w-[720px] mx-auto flex flex-col gap-5">
               {entries.map((e, i) => {
@@ -291,19 +318,37 @@ function EvaluatePage() {
                         >
                           <X className="w-3 h-3" />
                         </button>
-                        <img src={img.dataUrl} alt={img.name} onClick={() => setLightbox(img)}
+                        <img
+                          src={img.dataUrl}
+                          alt={img.name}
+                          onClick={() => setLightbox(img)}
                           className="rounded-md border border-[#ECEAE4] cursor-zoom-in object-cover"
-                          style={{ width: 140, height: 90 }} />
-                        <div className="text-[11px] text-ink-secondary mt-1 truncate" style={{ maxWidth: 140 }}>{img.name}</div>
+                          style={{ width: 140, height: 90 }}
+                        />
+                        <div
+                          className="text-[11px] text-ink-secondary mt-1 truncate"
+                          style={{ maxWidth: 140 }}
+                        >
+                          {img.name}
+                        </div>
                       </div>
                     </div>
                   );
                 }
-                return <TextBubble key={i} entry={e} img={e.refImageId ? imgById(e.refImageId) : undefined} onImg={(im) => setLightbox(im)} />;
+                return (
+                  <TextBubble
+                    key={i}
+                    entry={e}
+                    img={e.refImageId ? imgById(e.refImageId) : undefined}
+                    onImg={(im) => setLightbox(im)}
+                  />
+                );
               })}
               {loading && (
                 <div className="flex flex-col items-start gap-1.5">
-                  <div className="text-[11px] text-ink-secondary flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-teal inline-block" /> Tenet</div>
+                  <div className="text-[11px] text-ink-secondary flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-teal inline-block" /> Tenet
+                  </div>
                   <div className="bg-teal-soft border-l-2 border-teal rounded-md px-3 py-3">
                     <div className="flex gap-1.5">
                       <span className="tenet-dot w-1.5 h-1.5 rounded-full bg-teal inline-block" />
@@ -316,8 +361,14 @@ function EvaluatePage() {
             </div>
           </div>
           <div className="border-t border-border bg-surface px-6 py-4">
-            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" multiple hidden
-              onChange={(e) => onFiles(e.target.files)} />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              multiple
+              hidden
+              onChange={(e) => onFiles(e.target.files)}
+            />
             <div className="max-w-[720px] mx-auto flex items-end gap-3">
               <button
                 onClick={onPickFile}
@@ -333,10 +384,19 @@ function EvaluatePage() {
                   onChange={(e) => setInput(e.target.value)}
                   disabled={micState === "recording"}
                   onKeyDown={(e) => {
-                    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); void sendMessage(); }
+                    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                      e.preventDefault();
+                      void sendMessage();
+                    }
                   }}
                   rows={1}
-                  placeholder={micState === "recording" ? "Listening..." : transcribing ? "" : "Type your trade plan here..."}
+                  placeholder={
+                    micState === "recording"
+                      ? "Listening..."
+                      : transcribing
+                        ? ""
+                        : "Type your trade plan here..."
+                  }
                   className="w-full resize-none px-3 py-2.5 pr-9 text-[14px] rounded-md border border-border bg-surface focus:outline-none focus:border-teal max-h-[120px] disabled:opacity-60"
                 />
                 {transcribing && (
@@ -351,7 +411,9 @@ function EvaluatePage() {
                 onClick={onSendClick}
                 disabled={!canSend}
                 className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors shrink-0 ${
-                  canSend ? "bg-teal text-white hover:opacity-90" : "bg-[#E8E8E0] text-ink-secondary cursor-not-allowed"
+                  canSend
+                    ? "bg-teal text-white hover:opacity-90"
+                    : "bg-[#E8E8E0] text-ink-secondary cursor-not-allowed"
                 }`}
               >
                 <ArrowUp className="w-4 h-4" />
@@ -369,21 +431,34 @@ function EvaluatePage() {
           <div className="flex-1 overflow-y-auto px-5 py-5">
             {attachedImages.length > 0 && (
               <div className="mb-6">
-                <div className="text-[12px] uppercase tracking-[0.12em] text-teal font-medium">Supporting documents</div>
-                <div className="text-[11px] italic text-ink-secondary mt-0.5">Charts attached to this evaluation</div>
+                <div className="text-[12px] uppercase tracking-[0.12em] text-teal font-medium">
+                  Supporting documents
+                </div>
+                <div className="text-[11px] italic text-ink-secondary mt-0.5">
+                  Charts attached to this evaluation
+                </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {attachedImages.map((img) => (
                     <div key={img.id} className="relative group">
-                      <img src={img.dataUrl} alt={img.name} onClick={() => setLightbox(img)}
+                      <img
+                        src={img.dataUrl}
+                        alt={img.name}
+                        onClick={() => setLightbox(img)}
                         className="rounded-md border border-[#ECEAE4] cursor-zoom-in object-cover"
-                        style={{ width: 60, height: 40 }} />
+                        style={{ width: 60, height: 40 }}
+                      />
                       <button
                         onClick={() => removeImage(img)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-ink text-white flex items-center justify-center"
                       >
                         <X className="w-2.5 h-2.5" />
                       </button>
-                      <div className="text-[10px] text-ink-secondary truncate mt-0.5" style={{ maxWidth: 60 }}>{img.name}</div>
+                      <div
+                        className="text-[10px] text-ink-secondary truncate mt-0.5"
+                        style={{ maxWidth: 60 }}
+                      >
+                        {img.name}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -404,16 +479,27 @@ function EvaluatePage() {
             >
               {isFinal ? "Run my evaluation →" : "Run evaluation"}
             </button>
-            <p className={`mt-2 text-[12px] italic text-center ${isFinal ? "text-teal" : "text-ink-secondary"}`}>
-              {isFinal ? "Ready when you are." : "Tenet has open questions — answer above for the most useful verdict."}
+            <p
+              className={`mt-2 text-[12px] italic text-center ${isFinal ? "text-teal" : "text-ink-secondary"}`}
+            >
+              {isFinal
+                ? "Ready when you are."
+                : "Tenet has open questions — answer above for the most useful verdict."}
             </p>
           </div>
         </div>
       </div>
 
       {lightbox && (
-        <div onClick={() => setLightbox(null)} className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-8 cursor-zoom-out">
-          <img src={lightbox.dataUrl} alt={lightbox.name} className="max-w-full max-h-full rounded-md" />
+        <div
+          onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-8 cursor-zoom-out"
+        >
+          <img
+            src={lightbox.dataUrl}
+            alt={lightbox.name}
+            className="max-w-full max-h-full rounded-md"
+          />
         </div>
       )}
 
@@ -421,10 +507,25 @@ function EvaluatePage() {
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-6">
           <div className="bg-background rounded-lg max-w-md w-full p-6 border border-border">
             <div className="text-[15px] font-medium mb-2">Remove referenced image?</div>
-            <div className="text-[13px] text-ink-secondary mb-5">This image is referenced in Tenet's prior reasoning. Remove anyway?</div>
+            <div className="text-[13px] text-ink-secondary mb-5">
+              This image is referenced in Tenet's prior reasoning. Remove anyway?
+            </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setConfirmRemove(null)} className="px-4 py-2 text-[13px] rounded-md border border-border hover:bg-surface">Cancel</button>
-              <button onClick={() => { doRemoveImage(confirmRemove); setConfirmRemove(null); }} className="px-4 py-2 text-[13px] rounded-md bg-ink text-white hover:opacity-90">Remove</button>
+              <button
+                onClick={() => setConfirmRemove(null)}
+                className="px-4 py-2 text-[13px] rounded-md border border-border hover:bg-surface"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  doRemoveImage(confirmRemove);
+                  setConfirmRemove(null);
+                }}
+                className="px-4 py-2 text-[13px] rounded-md bg-ink text-white hover:opacity-90"
+              >
+                Remove
+              </button>
             </div>
           </div>
         </div>
@@ -433,12 +534,28 @@ function EvaluatePage() {
   );
 }
 
-function MicButton({ state, onClick, disabled }: { state: "idle" | "recording" | "stopped"; onClick: () => void; disabled?: boolean }) {
-  const tip = state === "idle" ? "Tap to speak" : state === "recording" ? "Listening — tap again to stop" : "";
+function MicButton({
+  state,
+  onClick,
+  disabled,
+}: {
+  state: "idle" | "recording" | "stopped";
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const tip =
+    state === "idle"
+      ? "Tap to speak"
+      : state === "recording"
+        ? "Listening — tap again to stop"
+        : "";
   return (
     <div className="relative group shrink-0">
       {state === "recording" && (
-        <span className="absolute inset-0 rounded-full bg-red-500 opacity-0 animate-tenet-pulse" style={{ margin: -8 }} />
+        <span
+          className="absolute inset-0 rounded-full bg-red-500 opacity-0 animate-tenet-pulse"
+          style={{ margin: -8 }}
+        />
       )}
       <button
         onClick={onClick}
@@ -447,8 +564,8 @@ function MicButton({ state, onClick, disabled }: { state: "idle" | "recording" |
           state === "recording"
             ? "bg-red-600 text-white"
             : state === "stopped"
-            ? "bg-white border-[1.5px] border-emerald-500 text-emerald-500"
-            : "bg-white border-[1.5px] border-teal text-teal hover:bg-teal-soft"
+              ? "bg-white border-[1.5px] border-emerald-500 text-emerald-500"
+              : "bg-white border-[1.5px] border-teal text-teal hover:bg-teal-soft"
         } ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
       >
         {state === "stopped" ? <Check className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -465,16 +582,30 @@ function MicButton({ state, onClick, disabled }: { state: "idle" | "recording" |
   );
 }
 
-function TextBubble({ entry, img, onImg }: { entry: Extract<ChatEntry, { kind: "text" }>; img?: AttachedImage; onImg: (i: AttachedImage) => void }) {
+function TextBubble({
+  entry,
+  img,
+  onImg,
+}: {
+  entry: Extract<ChatEntry, { kind: "text" }>;
+  img?: AttachedImage;
+  onImg: (i: AttachedImage) => void;
+}) {
   if (entry.role === "assistant") {
     return (
       <div className="flex flex-col items-start gap-1.5">
-        <div className="text-[11px] text-ink-secondary flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-teal inline-block" /> Tenet</div>
+        <div className="text-[11px] text-ink-secondary flex items-center gap-1.5">
+          <span className="w-1 h-1 rounded-full bg-teal inline-block" /> Tenet
+        </div>
         <div className="bg-teal-soft border-l-2 border-teal rounded-md px-3 py-2.5 max-w-[70%] text-[14px] text-ink whitespace-pre-wrap">
           {img && (
-            <img src={img.dataUrl} alt={img.name} onClick={() => onImg(img)}
+            <img
+              src={img.dataUrl}
+              alt={img.name}
+              onClick={() => onImg(img)}
               className="mb-2 rounded-md border border-[#ECEAE4] cursor-zoom-in object-cover"
-              style={{ width: 120, height: 80 }} />
+              style={{ width: 120, height: 80 }}
+            />
           )}
           {entry.content}
         </div>
@@ -493,7 +624,11 @@ function TextBubble({ entry, img, onImg }: { entry: Extract<ChatEntry, { kind: "
 
 function PlanPanel({ ep }: { ep: import("@/lib/tenet/types").ExtractedPlan | null }) {
   if (!ep) {
-    return <div className="h-full flex items-center justify-center text-center text-[13px] italic text-ink-secondary px-6">Your trade plan will appear here as you tell me.</div>;
+    return (
+      <div className="h-full flex items-center justify-center text-center text-[13px] italic text-ink-secondary px-6">
+        Your trade plan will appear here as you tell me.
+      </div>
+    );
   }
   const rows: { label: string; value: string | null; computed?: boolean }[] = [
     { label: "Pair", value: ep.pair },
@@ -508,14 +643,20 @@ function PlanPanel({ ep }: { ep: import("@/lib/tenet/types").ExtractedPlan | nul
   ];
   const visible = rows.filter((r) => r.value);
   if (visible.length === 0) {
-    return <div className="h-full flex items-center justify-center text-center text-[13px] italic text-ink-secondary px-6">Your trade plan will appear here as you tell me.</div>;
+    return (
+      <div className="h-full flex items-center justify-center text-center text-[13px] italic text-ink-secondary px-6">
+        Your trade plan will appear here as you tell me.
+      </div>
+    );
   }
   return (
     <div className="flex flex-col gap-3.5">
       {visible.map((r) => (
         <div key={r.label}>
           <div className="flex items-center gap-2">
-            <div className="text-[11px] uppercase tracking-[0.12em] text-ink-secondary">{r.label}</div>
+            <div className="text-[11px] uppercase tracking-[0.12em] text-ink-secondary">
+              {r.label}
+            </div>
             <span className="text-[10px] uppercase tracking-wide bg-[#F5F5F0] text-ink-secondary px-1.5 py-0.5 rounded">
               {r.computed ? "Computed" : "From your input"}
             </span>
