@@ -1,10 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { SYSTEM_PROMPT } from "./prompt";
 
+type ImagePart = { dataUrl: string };
+
 type Input = {
   rulebook: unknown;
   history: { role: "user" | "assistant"; content: string }[];
   latest: string;
+  images?: ImagePart[];
 };
 
 export const evaluateTrade = createServerFn({ method: "POST" })
@@ -17,7 +20,7 @@ export const evaluateTrade = createServerFn({ method: "POST" })
       .map((m) => `  ${m.role === "user" ? "Trader" : "Tenet"}: "${m.content.replace(/"/g, '\\"')}"`)
       .join("\n");
 
-    const userMsg = `<RULEBOOK>
+    const userText = `<RULEBOOK>
 ${JSON.stringify(data.rulebook, null, 2)}
 </RULEBOOK>
 
@@ -29,6 +32,14 @@ ${historyText}
 ${data.latest}
 </LATEST_INPUT>`;
 
+    const imgs = data.images ?? [];
+    const userContent: unknown = imgs.length
+      ? [
+          { type: "text", text: userText },
+          ...imgs.map((i) => ({ type: "image_url", image_url: { url: i.dataUrl } })),
+        ]
+      : userText;
+
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -39,7 +50,7 @@ ${data.latest}
         model: "gpt-5",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userMsg },
+          { role: "user", content: userContent },
         ],
         response_format: { type: "json_object" },
         max_completion_tokens: 6000,
@@ -53,4 +64,32 @@ ${data.latest}
     const j = await res.json();
     const content: string = j?.choices?.[0]?.message?.content ?? "";
     return { content };
+  });
+
+type TranscribeInput = { audioBase64: string; mimeType: string };
+
+export const transcribeAudio = createServerFn({ method: "POST" })
+  .inputValidator((d: TranscribeInput) => d)
+  .handler(async ({ data }) => {
+    const key = process.env.OPENAI_API_KEY;
+    if (!key) throw new Error("OPENAI_API_KEY is not configured");
+
+    const bin = Uint8Array.from(atob(data.audioBase64), (c) => c.charCodeAt(0));
+    const ext = data.mimeType.includes("mp4") ? "mp4" : data.mimeType.includes("ogg") ? "ogg" : "webm";
+    const blob = new Blob([bin], { type: data.mimeType });
+    const form = new FormData();
+    form.append("file", blob, `recording.${ext}`);
+    form.append("model", "whisper-1");
+
+    const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}` },
+      body: form,
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`Whisper ${res.status}: ${txt.slice(0, 300)}`);
+    }
+    const j = await res.json();
+    return { text: (j?.text as string) ?? "" };
   });
