@@ -193,18 +193,30 @@ function EvaluatePage() {
     setInput("");
     setLoading(true);
     try {
-      const history = newEntries
+      const fullHistory = newEntries
         .filter((e): e is Extract<ChatEntry, { kind: "text" }> => e.kind === "text")
         .slice(0, -1)
         .map((e) => ({ role: e.role, content: e.content }));
-      const { content } = await callEval({
-        data: {
-          rulebook: rb,
-          history,
-          latest: text,
-          images: attachedImages.map((i) => ({ dataUrl: i.dataUrl })),
-        },
-      });
+      // Only send the last 8 messages to keep latency manageable
+      const history = fullHistory.slice(-8);
+      const payload = {
+        rulebook: rb,
+        history,
+        latest: text,
+        images: attachedImages.map((i) => ({ dataUrl: i.dataUrl })),
+      };
+      const isTimeout = (err: unknown) => {
+        const m = err instanceof Error ? err.message : String(err);
+        return /timeout|timed out|504|aborted/i.test(m);
+      };
+      let content: string;
+      try {
+        ({ content } = await callEval({ data: payload }));
+      } catch (err) {
+        if (!isTimeout(err)) throw err;
+        toast.message("Tenet is taking longer than usual — retrying...");
+        ({ content } = await callEval({ data: payload }));
+      }
       const parsed = parseResponse(content);
       if (!parsed) {
         toast.error("Tenet's response couldn't be read. Try again.");
@@ -223,7 +235,10 @@ function EvaluatePage() {
       setEntries([...newEntries, { kind: "text", role: "assistant", content: aiText, refImageId }]);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Request failed";
-      toast.error(msg);
+      const friendly = /timeout|timed out|504|aborted/i.test(msg)
+        ? "Tenet is taking unusually long. Please try again or rephrase your message."
+        : msg;
+      toast.error(friendly);
     } finally {
       setLoading(false);
     }
