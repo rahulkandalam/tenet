@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Check, X, CircleDot } from "lucide-react";
 import type { EvalResponse } from "@/lib/tenet/types";
@@ -11,10 +11,21 @@ export const Route = createFileRoute("/verdict")({
 
 function VerdictPage() {
   const navigate = useNavigate();
-  const state = useRouterState({ select: (s) => s.location.state as { verdict?: EvalResponse } | undefined });
-  const verdict = state?.verdict;
+  const [verdict, setVerdict] = useState<EvalResponse | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("tenet_verdict");
+      if (raw) setVerdict(JSON.parse(raw) as EvalResponse);
+    } catch {}
+    setHydrated(true);
+  }, []);
   const [overrideOpen, setOverrideOpen] = useState(false);
   const [overrideText, setOverrideText] = useState("");
+
+  if (!hydrated) {
+    return <div className="min-h-screen bg-background" />;
+  }
 
   if (!verdict) {
     return (
