@@ -205,18 +205,14 @@ function EvaluatePage() {
         latest: text,
         images: attachedImages.map((i) => ({ dataUrl: i.dataUrl })),
       };
-      const isTimeout = (err: unknown) => {
-        const m = err instanceof Error ? err.message : String(err);
-        return /timeout|timed out|504|aborted/i.test(m);
-      };
       let content: string;
-      try {
-        ({ content } = await callEval({ data: payload }));
-      } catch (err) {
-        if (!isTimeout(err)) throw err;
-        toast.message("Tenet is taking longer than usual — retrying...");
-        ({ content } = await callEval({ data: payload }));
+      const result = await callEval({ data: payload });
+      if (result.error === "timeout") {
+        toast.error(result.message);
+        setEntries(newEntries);
+        return;
       }
+      ({ content } = result);
       const parsed = parseResponse(content);
       if (!parsed) {
         toast.error("Tenet's response couldn't be read. Try again.");
