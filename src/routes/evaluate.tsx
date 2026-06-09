@@ -205,14 +205,13 @@ function EvaluatePage() {
         latest: text,
         images: attachedImages.map((i) => ({ dataUrl: i.dataUrl })),
       };
-      let content: string;
       const result = await callEval({ data: payload });
       if (result.error === "timeout") {
         toast.error(result.message);
         setEntries(newEntries);
         return;
       }
-      ({ content } = result);
+      const { content } = result;
       const parsed = parseResponse(content);
       if (!parsed) {
         toast.error("Tenet's response couldn't be read. Try again.");
