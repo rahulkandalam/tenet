@@ -274,7 +274,9 @@ function EvaluatePage() {
     if (!latest) return;
     try {
       sessionStorage.setItem("tenet_verdict", JSON.stringify(latest));
-    } catch {}
+    } catch {
+      // Ignore storage failures and still navigate with the in-memory verdict state.
+    }
     navigate({ to: "/verdict" });
   };
 
