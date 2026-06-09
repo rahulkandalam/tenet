@@ -80,7 +80,8 @@ function EvaluatePage() {
 
   const runVerdict = () => {
     if (!latest) return;
-    navigate({ to: "/verdict", state: { verdict: latest } as never });
+    try { sessionStorage.setItem("tenet_verdict", JSON.stringify(latest)); } catch {}
+    navigate({ to: "/verdict" });
   };
 
   const isFinal = latest && latest.verdict_word !== "PROMPT";
