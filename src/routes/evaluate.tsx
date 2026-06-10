@@ -4,7 +4,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ArrowUp, Paperclip, Mic, Check, X, Loader2 } from "lucide-react";
 import { evaluateTrade, transcribeAudio } from "@/lib/tenet/evaluate.functions";
-import { loadRulebook, type EvalResponse } from "@/lib/tenet/types";
+import {
+  loadRulebook,
+  getCurrentUser,
+  getEvalCount,
+  incrementEvalCount,
+  DAILY_LIMIT,
+  type EvalResponse,
+} from "@/lib/tenet/types";
 
 export const Route = createFileRoute("/evaluate")({
   head: () => ({ meta: [{ title: "Evaluate — Tenet" }] }),
@@ -65,6 +72,7 @@ function EvaluatePage() {
   const [latest, setLatest] = useState<EvalResponse | null>(null);
   const [lightbox, setLightbox] = useState<AttachedImage | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<AttachedImage | null>(null);
+  const [retryAvailable, setRetryAvailable] = useState(false);
 
   // mic state
   const [micState, setMicState] = useState<"idle" | "recording" | "stopped">("idle");
@@ -204,17 +212,48 @@ function EvaluatePage() {
       toast.error("No rulebook found");
       return;
     }
+    const user = getCurrentUser();
+    if (!user) {
+      toast.error("No active user. Please sign in again.");
+      return;
+    }
+    // Rate limit
+    if (getEvalCount(user) >= DAILY_LIMIT) {
+      toast.error("You've used today's 7 evaluations. The limit resets at midnight.", {
+        duration: 6000,
+      });
+      setRetryAvailable(false);
+      return;
+    }
+
+    const priorEntries = entries;
     const currentImageIds = attachedImages.map((i) => i.id);
     const newEntries: ChatEntry[] = [...entries, { kind: "text", role: "user", content: text }];
     setEntries(newEntries);
     setInput("");
     setLoading(true);
+    setRetryAvailable(false);
+
+    const rollback = (friendly: string) => {
+      setEntries(priorEntries);
+      setInput(text);
+      setRetryAvailable(true);
+      toast.error(friendly, { duration: 6000 });
+    };
+
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setLoading(false);
+      rollback("You're offline. Reconnect and try again. Your plan is saved.");
+      return;
+    }
+
+    incrementEvalCount(user);
+
     try {
       const fullHistory = newEntries
         .filter((e): e is Extract<ChatEntry, { kind: "text" }> => e.kind === "text")
         .slice(0, -1)
         .map((e) => ({ role: e.role, content: e.content }));
-      // Only send the last 8 messages to keep latency manageable
       const history = fullHistory.slice(-8);
       const payload = {
         rulebook: rb,
@@ -224,15 +263,13 @@ function EvaluatePage() {
       };
       const result = await callEval({ data: payload });
       if (result.error === "timeout") {
-        toast.error(result.message);
-        setEntries(newEntries);
+        rollback("Evaluation took too long. Your plan is saved — retry?");
         return;
       }
       const { content } = result;
       const parsed = parseResponse(content);
       if (!parsed) {
-        toast.error("Tenet's response couldn't be read. Try again.");
-        setLoading(false);
+        rollback("Tenet's response couldn't be read. Your plan is saved — retry?");
         return;
       }
       setLatest(parsed);
@@ -240,7 +277,6 @@ function EvaluatePage() {
         parsed.verdict_word === "PROMPT"
           ? parsed.follow_up_question || parsed.summary || "Tell me more."
           : "OK, that's everything I need. Ready when you are.";
-      // heuristic: does AI reference chart?
       const refsChart =
         /chart shows|i can see|the image|in the chart|on the chart/i.test(aiText) ||
         /chart shows|i can see|the image|in the chart|on the chart/i.test(parsed.summary || "");
@@ -252,10 +288,15 @@ function EvaluatePage() {
       setEntries([...newEntries, { kind: "text", role: "assistant", content: aiText, refImageId }]);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Request failed";
-      const friendly = /timeout|timed out|504|aborted/i.test(msg)
-        ? "Tenet is taking unusually long. Please try again or rephrase your message."
-        : msg;
-      toast.error(friendly);
+      let friendly = "Service error. Your plan is saved — retry?";
+      if (e instanceof TypeError || /network|fetch failed/i.test(msg)) {
+        friendly = "You're offline. Reconnect and try again. Your plan is saved.";
+      } else if (/429|overload|rate.?limit|busy/i.test(msg)) {
+        friendly = "OpenAI is busy. Try again in a moment. Your plan is saved.";
+      } else if (/timeout|timed out|aborted|504/i.test(msg)) {
+        friendly = "Evaluation took too long. Your plan is saved — retry?";
+      }
+      rollback(friendly);
     } finally {
       setLoading(false);
     }
@@ -419,6 +460,17 @@ function EvaluatePage() {
                 <ArrowUp className="w-4 h-4" />
               </button>
             </div>
+            {retryAvailable && (
+              <div className="max-w-[720px] mx-auto mt-3 flex justify-end">
+                <button
+                  onClick={() => void sendMessage()}
+                  disabled={loading || !input.trim()}
+                  className="px-3 py-1.5 text-[14px] border border-teal text-teal rounded-md hover:bg-teal-soft disabled:opacity-50"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

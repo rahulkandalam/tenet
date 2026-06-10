@@ -14,7 +14,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { isRulebookComplete, loadRulebook } from "../lib/tenet/types";
+import { isAuthed, getCurrentUser, isRulebookComplete, loadRulebook } from "../lib/tenet/types";
 
 function NotFoundComponent() {
   return (
@@ -91,14 +91,31 @@ function RouteGuard() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   useEffect(() => {
-    if (pathname === "/welcome" || pathname === "/rulebook/new" || pathname === "/rulebook") return;
-    const rb = loadRulebook();
-    const complete = isRulebookComplete(rb);
-    if (!complete) {
-      navigate({ to: "/welcome", replace: true });
+    const authed = isAuthed();
+    const user = getCurrentUser();
+
+    // 1. Not authed -> /unlock
+    if (!authed) {
+      if (pathname !== "/unlock") navigate({ to: "/unlock", replace: true });
       return;
     }
-    if (pathname === "/") navigate({ to: "/home", replace: true });
+    // 2. Authed but no user -> /identity
+    if (!user) {
+      if (pathname !== "/identity") navigate({ to: "/identity", replace: true });
+      return;
+    }
+    // 3. Authed + user, but no rulebook -> /welcome-tenet
+    const rb = loadRulebook();
+    const complete = isRulebookComplete(rb);
+    const exempt = ["/welcome-tenet", "/rulebook/new", "/rulebook", "/unlock", "/identity"];
+    if (!complete) {
+      if (!exempt.includes(pathname)) navigate({ to: "/welcome-tenet", replace: true });
+      return;
+    }
+    // 4. Fully set up
+    if (pathname === "/" || pathname === "/unlock" || pathname === "/identity" || pathname === "/welcome-tenet") {
+      navigate({ to: "/home", replace: true });
+    }
   }, [pathname, navigate]);
   return null;
 }

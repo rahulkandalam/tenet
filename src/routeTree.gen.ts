@@ -9,9 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeTenetRouteImport } from './routes/welcome-tenet'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as VerdictRouteImport } from './routes/verdict'
+import { Route as UnlockRouteImport } from './routes/unlock'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as IdentityRouteImport } from './routes/identity'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as EvaluateRouteImport } from './routes/evaluate'
@@ -19,6 +22,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as RulebookIndexRouteImport } from './routes/rulebook.index'
 import { Route as RulebookNewRouteImport } from './routes/rulebook.new'
 
+const WelcomeTenetRoute = WelcomeTenetRouteImport.update({
+  id: '/welcome-tenet',
+  path: '/welcome-tenet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
@@ -29,9 +37,19 @@ const VerdictRoute = VerdictRouteImport.update({
   path: '/verdict',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UnlockRoute = UnlockRouteImport.update({
+  id: '/unlock',
+  path: '/unlock',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IdentityRoute = IdentityRouteImport.update({
+  id: '/identity',
+  path: '/identity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -70,9 +88,12 @@ export interface FileRoutesByFullPath {
   '/evaluate': typeof EvaluateRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/identity': typeof IdentityRoute
   '/settings': typeof SettingsRoute
+  '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
   '/welcome': typeof WelcomeRoute
+  '/welcome-tenet': typeof WelcomeTenetRoute
   '/rulebook/new': typeof RulebookNewRoute
   '/rulebook/': typeof RulebookIndexRoute
 }
@@ -81,9 +102,12 @@ export interface FileRoutesByTo {
   '/evaluate': typeof EvaluateRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/identity': typeof IdentityRoute
   '/settings': typeof SettingsRoute
+  '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
   '/welcome': typeof WelcomeRoute
+  '/welcome-tenet': typeof WelcomeTenetRoute
   '/rulebook/new': typeof RulebookNewRoute
   '/rulebook': typeof RulebookIndexRoute
 }
@@ -93,9 +117,12 @@ export interface FileRoutesById {
   '/evaluate': typeof EvaluateRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/identity': typeof IdentityRoute
   '/settings': typeof SettingsRoute
+  '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
   '/welcome': typeof WelcomeRoute
+  '/welcome-tenet': typeof WelcomeTenetRoute
   '/rulebook/new': typeof RulebookNewRoute
   '/rulebook/': typeof RulebookIndexRoute
 }
@@ -106,9 +133,12 @@ export interface FileRouteTypes {
     | '/evaluate'
     | '/history'
     | '/home'
+    | '/identity'
     | '/settings'
+    | '/unlock'
     | '/verdict'
     | '/welcome'
+    | '/welcome-tenet'
     | '/rulebook/new'
     | '/rulebook/'
   fileRoutesByTo: FileRoutesByTo
@@ -117,9 +147,12 @@ export interface FileRouteTypes {
     | '/evaluate'
     | '/history'
     | '/home'
+    | '/identity'
     | '/settings'
+    | '/unlock'
     | '/verdict'
     | '/welcome'
+    | '/welcome-tenet'
     | '/rulebook/new'
     | '/rulebook'
   id:
@@ -128,9 +161,12 @@ export interface FileRouteTypes {
     | '/evaluate'
     | '/history'
     | '/home'
+    | '/identity'
     | '/settings'
+    | '/unlock'
     | '/verdict'
     | '/welcome'
+    | '/welcome-tenet'
     | '/rulebook/new'
     | '/rulebook/'
   fileRoutesById: FileRoutesById
@@ -140,15 +176,25 @@ export interface RootRouteChildren {
   EvaluateRoute: typeof EvaluateRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
+  IdentityRoute: typeof IdentityRoute
   SettingsRoute: typeof SettingsRoute
+  UnlockRoute: typeof UnlockRoute
   VerdictRoute: typeof VerdictRoute
   WelcomeRoute: typeof WelcomeRoute
+  WelcomeTenetRoute: typeof WelcomeTenetRoute
   RulebookNewRoute: typeof RulebookNewRoute
   RulebookIndexRoute: typeof RulebookIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome-tenet': {
+      id: '/welcome-tenet'
+      path: '/welcome-tenet'
+      fullPath: '/welcome-tenet'
+      preLoaderRoute: typeof WelcomeTenetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/welcome': {
       id: '/welcome'
       path: '/welcome'
@@ -163,11 +209,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerdictRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/unlock': {
+      id: '/unlock'
+      path: '/unlock'
+      fullPath: '/unlock'
+      preLoaderRoute: typeof UnlockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/identity': {
+      id: '/identity'
+      path: '/identity'
+      fullPath: '/identity'
+      preLoaderRoute: typeof IdentityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/home': {
@@ -220,9 +280,12 @@ const rootRouteChildren: RootRouteChildren = {
   EvaluateRoute: EvaluateRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
+  IdentityRoute: IdentityRoute,
   SettingsRoute: SettingsRoute,
+  UnlockRoute: UnlockRoute,
   VerdictRoute: VerdictRoute,
   WelcomeRoute: WelcomeRoute,
+  WelcomeTenetRoute: WelcomeTenetRoute,
   RulebookNewRoute: RulebookNewRoute,
   RulebookIndexRoute: RulebookIndexRoute,
 }

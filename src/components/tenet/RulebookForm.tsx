@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { RuleListEditor } from "./RuleListEditor";
-import { RULEBOOK_KEY, loadRulebook, type Rulebook } from "@/lib/tenet/types";
+import { getCurrentUser, loadRulebook, rulebookKeyFor, type Rulebook } from "@/lib/tenet/types";
 
 type Mode = "new" | "edit";
 
@@ -63,7 +63,12 @@ export function RulebookForm({ mode }: { mode: Mode }) {
       soft_meta_rules: data.soft_meta_rules.map((v) => v.trim()).filter(Boolean),
       activated_at: existing?.activated_at && mode === "edit" ? existing.activated_at : new Date().toISOString(),
     };
-    localStorage.setItem(RULEBOOK_KEY, JSON.stringify(rb));
+    const user = getCurrentUser();
+    if (!user) {
+      toast.error("No active user. Please sign in again.");
+      return;
+    }
+    localStorage.setItem(rulebookKeyFor(user), JSON.stringify(rb));
     if (mode === "new") {
       toast.success("Rulebook activated");
       setTimeout(() => navigate({ to: "/home" }), 1200);

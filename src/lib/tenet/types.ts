@@ -39,12 +39,86 @@ export type EvalResponse = {
 
 export type ChatMsg = { role: "user" | "assistant"; content: string };
 
-export const RULEBOOK_KEY = "tenet_rulebook";
+// Legacy / global keys
+export const LEGACY_RULEBOOK_KEY = "tenet_rulebook";
+export const AUTHED_KEY = "tenet_authed";
+export const CURRENT_USER_KEY = "tenet_current_user";
+export const KNOWN_USERS_KEY = "tenet_known_users";
+
+// Kept as named export for backward compatibility with anywhere still importing it.
+export const RULEBOOK_KEY = LEGACY_RULEBOOK_KEY;
+
+export const DAILY_LIMIT = 7;
+
+export function getCurrentUser(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const v = localStorage.getItem(CURRENT_USER_KEY);
+    return v && v.trim() ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function isAuthed(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(AUTHED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function rulebookKeyFor(user: string): string {
+  return `tenet_${user}_rulebook`;
+}
+
+export function todayLocalISO(): string {
+  return new Date().toLocaleDateString("en-CA");
+}
+
+export function evalCountKey(user: string, date = todayLocalISO()): string {
+  return `tenet_${user}_evals_${date}`;
+}
+
+export function getEvalCount(user: string, date = todayLocalISO()): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const v = localStorage.getItem(evalCountKey(user, date));
+    const n = v ? parseInt(v, 10) : 0;
+    return Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function incrementEvalCount(user: string, date = todayLocalISO()): number {
+  const next = getEvalCount(user, date) + 1;
+  try {
+    localStorage.setItem(evalCountKey(user, date), String(next));
+  } catch {
+    // ignore
+  }
+  return next;
+}
 
 export function loadRulebook(): Rulebook | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(RULEBOOK_KEY);
+    const user = getCurrentUser();
+    const key = user ? rulebookKeyFor(user) : LEGACY_RULEBOOK_KEY;
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw) as Rulebook;
+  } catch {
+    return null;
+  }
+}
+
+export function loadRulebookFor(user: string): Rulebook | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(rulebookKeyFor(user));
     if (!raw) return null;
     return JSON.parse(raw) as Rulebook;
   } catch {
