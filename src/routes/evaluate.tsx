@@ -460,6 +460,17 @@ function EvaluatePage() {
                 <ArrowUp className="w-4 h-4" />
               </button>
             </div>
+            {retryAvailable && (
+              <div className="max-w-[720px] mx-auto mt-3 flex justify-end">
+                <button
+                  onClick={() => void sendMessage()}
+                  disabled={loading || !input.trim()}
+                  className="px-3 py-1.5 text-[14px] border border-teal text-teal rounded-md hover:bg-teal-soft disabled:opacity-50"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
