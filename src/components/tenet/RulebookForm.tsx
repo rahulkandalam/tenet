@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { RuleListEditor } from "./RuleListEditor";
-import { RULEBOOK_KEY, loadRulebook, type Rulebook } from "@/lib/tenet/types";
+import { getCurrentUser, loadRulebook, rulebookKeyFor, type Rulebook } from "@/lib/tenet/types";
 
 type Mode = "new" | "edit";
 
