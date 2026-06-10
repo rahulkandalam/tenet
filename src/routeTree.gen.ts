@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeTenetRouteImport } from './routes/welcome-tenet'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as VerdictRouteImport } from './routes/verdict'
 import { Route as UnlockRouteImport } from './routes/unlock'
@@ -21,6 +22,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as RulebookIndexRouteImport } from './routes/rulebook.index'
 import { Route as RulebookNewRouteImport } from './routes/rulebook.new'
 
+const WelcomeTenetRoute = WelcomeTenetRouteImport.update({
+  id: '/welcome-tenet',
+  path: '/welcome-tenet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
   '/welcome': typeof WelcomeRoute
+  '/welcome-tenet': typeof WelcomeTenetRoute
   '/rulebook/new': typeof RulebookNewRoute
   '/rulebook/': typeof RulebookIndexRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
   '/welcome': typeof WelcomeRoute
+  '/welcome-tenet': typeof WelcomeTenetRoute
   '/rulebook/new': typeof RulebookNewRoute
   '/rulebook': typeof RulebookIndexRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
   '/welcome': typeof WelcomeRoute
+  '/welcome-tenet': typeof WelcomeTenetRoute
   '/rulebook/new': typeof RulebookNewRoute
   '/rulebook/': typeof RulebookIndexRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/unlock'
     | '/verdict'
     | '/welcome'
+    | '/welcome-tenet'
     | '/rulebook/new'
     | '/rulebook/'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/unlock'
     | '/verdict'
     | '/welcome'
+    | '/welcome-tenet'
     | '/rulebook/new'
     | '/rulebook'
   id:
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/unlock'
     | '/verdict'
     | '/welcome'
+    | '/welcome-tenet'
     | '/rulebook/new'
     | '/rulebook/'
   fileRoutesById: FileRoutesById
@@ -169,12 +181,20 @@ export interface RootRouteChildren {
   UnlockRoute: typeof UnlockRoute
   VerdictRoute: typeof VerdictRoute
   WelcomeRoute: typeof WelcomeRoute
+  WelcomeTenetRoute: typeof WelcomeTenetRoute
   RulebookNewRoute: typeof RulebookNewRoute
   RulebookIndexRoute: typeof RulebookIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome-tenet': {
+      id: '/welcome-tenet'
+      path: '/welcome-tenet'
+      fullPath: '/welcome-tenet'
+      preLoaderRoute: typeof WelcomeTenetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/welcome': {
       id: '/welcome'
       path: '/welcome'
@@ -265,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnlockRoute: UnlockRoute,
   VerdictRoute: VerdictRoute,
   WelcomeRoute: WelcomeRoute,
+  WelcomeTenetRoute: WelcomeTenetRoute,
   RulebookNewRoute: RulebookNewRoute,
   RulebookIndexRoute: RulebookIndexRoute,
 }
