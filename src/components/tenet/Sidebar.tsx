@@ -1,5 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Home, Clock, Settings, ChevronDown } from "lucide-react";
+import { getCurrentUser } from "@/lib/tenet/types";
 
 const items = [
   { to: "/home", label: "Home", icon: Home },
