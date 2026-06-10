@@ -45,8 +45,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-14 flex items-center justify-end px-6 border-b border-border bg-surface">
           <div className="flex items-center gap-1">
-            <div className="w-10 h-10 rounded-full bg-[#E8E8E0] text-ink text-[13px] font-semibold flex items-center justify-center">
-              AC
+            <div className="w-10 h-10 rounded-full bg-teal text-white text-[14px] font-semibold flex items-center justify-center">
+              {initial}
             </div>
             <ChevronDown className="w-4 h-4 text-ink-secondary" />
           </div>
