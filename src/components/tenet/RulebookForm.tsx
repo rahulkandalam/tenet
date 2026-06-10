@@ -63,7 +63,12 @@ export function RulebookForm({ mode }: { mode: Mode }) {
       soft_meta_rules: data.soft_meta_rules.map((v) => v.trim()).filter(Boolean),
       activated_at: existing?.activated_at && mode === "edit" ? existing.activated_at : new Date().toISOString(),
     };
-    localStorage.setItem(RULEBOOK_KEY, JSON.stringify(rb));
+    const user = getCurrentUser();
+    if (!user) {
+      toast.error("No active user. Please sign in again.");
+      return;
+    }
+    localStorage.setItem(rulebookKeyFor(user), JSON.stringify(rb));
     if (mode === "new") {
       toast.success("Rulebook activated");
       setTimeout(() => navigate({ to: "/home" }), 1200);
