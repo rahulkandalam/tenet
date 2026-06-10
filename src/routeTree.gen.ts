@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as VerdictRouteImport } from './routes/verdict'
+import { Route as UnlockRouteImport } from './routes/unlock'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
@@ -27,6 +28,11 @@ const WelcomeRoute = WelcomeRouteImport.update({
 const VerdictRoute = VerdictRouteImport.update({
   id: '/verdict',
   path: '/verdict',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnlockRoute = UnlockRouteImport.update({
+  id: '/unlock',
+  path: '/unlock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
+  '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
   '/welcome': typeof WelcomeRoute
   '/rulebook/new': typeof RulebookNewRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
+  '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
   '/welcome': typeof WelcomeRoute
   '/rulebook/new': typeof RulebookNewRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
+  '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
   '/welcome': typeof WelcomeRoute
   '/rulebook/new': typeof RulebookNewRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/home'
     | '/settings'
+    | '/unlock'
     | '/verdict'
     | '/welcome'
     | '/rulebook/new'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/home'
     | '/settings'
+    | '/unlock'
     | '/verdict'
     | '/welcome'
     | '/rulebook/new'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/home'
     | '/settings'
+    | '/unlock'
     | '/verdict'
     | '/welcome'
     | '/rulebook/new'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
   SettingsRoute: typeof SettingsRoute
+  UnlockRoute: typeof UnlockRoute
   VerdictRoute: typeof VerdictRoute
   WelcomeRoute: typeof WelcomeRoute
   RulebookNewRoute: typeof RulebookNewRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/verdict'
       fullPath: '/verdict'
       preLoaderRoute: typeof VerdictRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unlock': {
+      id: '/unlock'
+      path: '/unlock'
+      fullPath: '/unlock'
+      preLoaderRoute: typeof UnlockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
   SettingsRoute: SettingsRoute,
+  UnlockRoute: UnlockRoute,
   VerdictRoute: VerdictRoute,
   WelcomeRoute: WelcomeRoute,
   RulebookNewRoute: RulebookNewRoute,
