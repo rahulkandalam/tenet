@@ -72,6 +72,7 @@ function EvaluatePage() {
   const [latest, setLatest] = useState<EvalResponse | null>(null);
   const [lightbox, setLightbox] = useState<AttachedImage | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<AttachedImage | null>(null);
+  const [retryAvailable, setRetryAvailable] = useState(false);
 
   // mic state
   const [micState, setMicState] = useState<"idle" | "recording" | "stopped">("idle");
