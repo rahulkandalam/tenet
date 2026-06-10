@@ -14,7 +14,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { isRulebookComplete, loadRulebook } from "../lib/tenet/types";
+import { isAuthed, getCurrentUser, isRulebookComplete, loadRulebook } from "../lib/tenet/types";
 
 function NotFoundComponent() {
   return (
