@@ -13,6 +13,7 @@ import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as VerdictRouteImport } from './routes/verdict'
 import { Route as UnlockRouteImport } from './routes/unlock'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as IdentityRouteImport } from './routes/identity'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as EvaluateRouteImport } from './routes/evaluate'
@@ -38,6 +39,11 @@ const UnlockRoute = UnlockRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IdentityRoute = IdentityRouteImport.update({
+  id: '/identity',
+  path: '/identity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/evaluate': typeof EvaluateRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/identity': typeof IdentityRoute
   '/settings': typeof SettingsRoute
   '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/evaluate': typeof EvaluateRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/identity': typeof IdentityRoute
   '/settings': typeof SettingsRoute
   '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/evaluate': typeof EvaluateRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/identity': typeof IdentityRoute
   '/settings': typeof SettingsRoute
   '/unlock': typeof UnlockRoute
   '/verdict': typeof VerdictRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/evaluate'
     | '/history'
     | '/home'
+    | '/identity'
     | '/settings'
     | '/unlock'
     | '/verdict'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/evaluate'
     | '/history'
     | '/home'
+    | '/identity'
     | '/settings'
     | '/unlock'
     | '/verdict'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/evaluate'
     | '/history'
     | '/home'
+    | '/identity'
     | '/settings'
     | '/unlock'
     | '/verdict'
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   EvaluateRoute: typeof EvaluateRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
+  IdentityRoute: typeof IdentityRoute
   SettingsRoute: typeof SettingsRoute
   UnlockRoute: typeof UnlockRoute
   VerdictRoute: typeof VerdictRoute
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/identity': {
+      id: '/identity'
+      path: '/identity'
+      fullPath: '/identity'
+      preLoaderRoute: typeof IdentityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/home': {
@@ -240,6 +260,7 @@ const rootRouteChildren: RootRouteChildren = {
   EvaluateRoute: EvaluateRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
+  IdentityRoute: IdentityRoute,
   SettingsRoute: SettingsRoute,
   UnlockRoute: UnlockRoute,
   VerdictRoute: VerdictRoute,
