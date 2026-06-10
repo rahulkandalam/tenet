@@ -4,7 +4,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ArrowUp, Paperclip, Mic, Check, X, Loader2 } from "lucide-react";
 import { evaluateTrade, transcribeAudio } from "@/lib/tenet/evaluate.functions";
-import { loadRulebook, type EvalResponse } from "@/lib/tenet/types";
+import {
+  loadRulebook,
+  getCurrentUser,
+  getEvalCount,
+  incrementEvalCount,
+  DAILY_LIMIT,
+  type EvalResponse,
+} from "@/lib/tenet/types";
 
 export const Route = createFileRoute("/evaluate")({
   head: () => ({ meta: [{ title: "Evaluate — Tenet" }] }),
