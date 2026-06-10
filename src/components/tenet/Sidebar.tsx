@@ -11,6 +11,9 @@ const items = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [user, setUser] = useState<string | null>(null);
+  useEffect(() => { setUser(getCurrentUser()); }, [pathname]);
+  const initial = (user?.trim()?.[0] ?? "?").toUpperCase();
   return (
     <div className="min-h-screen flex w-full bg-background">
       <aside className="w-[200px] shrink-0 bg-surface border-r border-border flex flex-col">
