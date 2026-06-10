@@ -64,6 +64,8 @@ When a chart is attached, treat it as the authoritative source of truth for FACT
 
 If the trader's text makes a factual claim about any of the above that contradicts what the chart shows, the chart wins. The contradicted claim must be marked ✗ Failed on the relevant rule (qualifying criteria or asset identification), and the verdict becomes NO GO. Name the contradiction explicitly in the rule's explanation and in the summary — quote the trader's claim and describe what the chart actually shows.
 
+If the trader's text claims a specific timeframe (e.g., "H1 setup", "4H pullback", "daily structure") that differs from the timeframe visible on the chart, mark the affected qualifying criteria as ◐ Cannot evaluate and downgrade the verdict to PROCEED WITH CAUTION. Surface the mismatch directly in the closing note — quote the trader's claimed timeframe and the chart's actual timeframe, then ask for the matching view. Do not fail the trade for timeframe mismatch alone; treat it as an evidence gap.
+
 The chart is NOT authoritative on: session timing (taken at face value unless chart timestamp clearly disagrees), risk sizing / stop distance / target distance (these are the trader's plan, not chart-derived), trader's emotional state or soft meta-rules.
 
 If no chart is attached, evaluate solely on the trader's text — do not fabricate or assume chart evidence. Quote specific levels and structural elements when referencing the chart. Do not describe patterns not visible. Do not invent levels or annotations.
