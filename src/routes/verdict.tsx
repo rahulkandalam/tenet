@@ -9,6 +9,30 @@ export const Route = createFileRoute("/verdict")({
   component: VerdictPage,
 });
 
+function parseClosingNote(note: string | null | undefined): {
+  whats_good?: string;
+  whats_bad?: string;
+  motivation?: string;
+  legacy?: string;
+} {
+  if (!note || typeof note !== "string") return {};
+  const sections: { whats_good?: string; whats_bad?: string; motivation?: string; legacy?: string } = {};
+  const lines = note.split("\n").map((l) => l.trim()).filter(Boolean);
+  for (const line of lines) {
+    if (/^What['\u2019]s good:/i.test(line)) {
+      sections.whats_good = line.replace(/^What['\u2019]s good:\s*/i, "").trim();
+    } else if (/^What['\u2019]s bad:/i.test(line)) {
+      sections.whats_bad = line.replace(/^What['\u2019]s bad:\s*/i, "").trim();
+    } else if (/^Motivation:/i.test(line)) {
+      sections.motivation = line.replace(/^Motivation:\s*/i, "").trim();
+    }
+  }
+  if (!sections.whats_good && !sections.whats_bad && !sections.motivation) {
+    sections.legacy = note;
+  }
+  return sections;
+}
+
 function VerdictPage() {
   const navigate = useNavigate();
   const [verdict, setVerdict] = useState<EvalResponse | null>(null);
