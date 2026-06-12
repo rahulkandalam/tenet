@@ -9,6 +9,30 @@ export const Route = createFileRoute("/verdict")({
   component: VerdictPage,
 });
 
+function parseClosingNote(note: string | null | undefined): {
+  whats_good?: string;
+  whats_bad?: string;
+  motivation?: string;
+  legacy?: string;
+} {
+  if (!note || typeof note !== "string") return {};
+  const sections: { whats_good?: string; whats_bad?: string; motivation?: string; legacy?: string } = {};
+  const lines = note.split("\n").map((l) => l.trim()).filter(Boolean);
+  for (const line of lines) {
+    if (/^What['\u2019]s good:/i.test(line)) {
+      sections.whats_good = line.replace(/^What['\u2019]s good:\s*/i, "").trim();
+    } else if (/^What['\u2019]s bad:/i.test(line)) {
+      sections.whats_bad = line.replace(/^What['\u2019]s bad:\s*/i, "").trim();
+    } else if (/^Motivation:/i.test(line)) {
+      sections.motivation = line.replace(/^Motivation:\s*/i, "").trim();
+    }
+  }
+  if (!sections.whats_good && !sections.whats_bad && !sections.motivation) {
+    sections.legacy = note;
+  }
+  return sections;
+}
+
 function VerdictPage() {
   const navigate = useNavigate();
   const [verdict, setVerdict] = useState<EvalResponse | null>(null);
@@ -61,6 +85,10 @@ function VerdictPage() {
     toast.error("Override recorded. Trade not endorsed by Tenet.");
   };
 
+  const sections = parseClosingNote(verdict.closing_note);
+  const hasStructured = sections.whats_good || sections.whats_bad || sections.motivation;
+  const hasClosing = hasStructured || sections.legacy;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="h-12 px-5 flex items-center justify-between border-b border-border bg-surface">
@@ -91,6 +119,31 @@ function VerdictPage() {
               </div>
             )}
 
+            {hasClosing && (
+              <div className="my-6 bg-surface border border-[#ECEAE4] rounded-lg p-5 flex flex-col gap-4">
+                {sections.whats_good && (
+                  <div>
+                    <div className="uppercase tracking-[0.14em] text-[11px] font-semibold mb-1 text-[#1D9E75]">What's good</div>
+                    <div className="text-[14px] text-ink leading-[1.5]">{sections.whats_good}</div>
+                  </div>
+                )}
+                {sections.whats_bad && (
+                  <div>
+                    <div className="uppercase tracking-[0.14em] text-[11px] font-semibold mb-1 text-[#C77B23]">What's bad</div>
+                    <div className="text-[14px] text-ink leading-[1.5]">{sections.whats_bad}</div>
+                  </div>
+                )}
+                {sections.motivation && (
+                  <div className="border-t border-[#ECEAE4] pt-3">
+                    <div className="italic text-[14px] text-[#555] text-center">"{sections.motivation}"</div>
+                  </div>
+                )}
+                {sections.legacy && (
+                  <div className="text-[14px] text-ink leading-[1.5]">{sections.legacy}</div>
+                )}
+              </div>
+            )}
+
             <div className="mt-8 mb-4 text-[11px] uppercase tracking-[0.14em] text-ink-secondary">
               Rules checked · {verdict.rules.length}
             </div>
@@ -110,10 +163,6 @@ function VerdictPage() {
                 </div>
               ))}
             </div>
-
-            {verdict.closing_note && (
-              <div className="mt-4 pl-4 text-[14px] italic text-ink-secondary">{verdict.closing_note}</div>
-            )}
 
             <div className="mt-8 pt-5 border-t border-border flex items-center justify-between">
               <button
