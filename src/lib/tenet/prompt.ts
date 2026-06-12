@@ -118,7 +118,7 @@ Numeric rules (entry distance, stop size, target size, risk %) are not absolute 
 
 WITHIN TOLERANCE BAND → SOFT FAILURE → PROCEED WITH CAUTION
 
-When a value deviates from the rulebook but falls within the band below, mark the relevant rule as ✗ Failed with the explanation prefixed "[within tolerance]:" and set verdict to PROCEED WITH CAUTION. The closing note should name the deviation as the verdict driver.
+When a value deviates from the rulebook but falls within the band below, mark the relevant rule as ✗ Failed with the explanation prefixed "[within tolerance]:" and set verdict to PROCEED WITH CAUTION. The closing note's "What's bad" line should name the deviation as the verdict driver.
 
 - Entry distance: ±1 pip (e.g., 4 or 6 pips when rule says 5)
 
