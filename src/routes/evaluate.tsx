@@ -73,6 +73,7 @@ function EvaluatePage() {
   const [lightbox, setLightbox] = useState<AttachedImage | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<AttachedImage | null>(null);
   const [retryAvailable, setRetryAvailable] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   // mic state
   const [micState, setMicState] = useState<"idle" | "recording" | "stopped">("idle");
@@ -85,6 +86,48 @@ function EvaluatePage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Hydrate in-flight conversation
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("tenet_conversation_in_flight");
+      if (raw) {
+        const s = JSON.parse(raw) as {
+          entries?: ChatEntry[];
+          attachedImages?: AttachedImage[];
+          referencedIds?: string[];
+          latest?: EvalResponse | null;
+        };
+        if (s.entries && Array.isArray(s.entries) && s.entries.length > 0) {
+          setEntries(s.entries);
+          if (s.attachedImages) setAttachedImages(s.attachedImages);
+          if (s.referencedIds) setReferencedIds(new Set(s.referencedIds));
+          if (s.latest) setLatest(s.latest);
+        }
+      }
+    } catch {
+      // ignore
+    }
+    setHydrated(true);
+    setTimeout(() => taRef.current?.focus(), 50);
+  }, []);
+
+  // Persist on change
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      const payload = {
+        entries,
+        attachedImages,
+        referencedIds: Array.from(referencedIds),
+        latest,
+        updated_at: new Date().toISOString(),
+      };
+      sessionStorage.setItem("tenet_conversation_in_flight", JSON.stringify(payload));
+    } catch {
+      // ignore
+    }
+  }, [entries, attachedImages, referencedIds, latest, hydrated]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
