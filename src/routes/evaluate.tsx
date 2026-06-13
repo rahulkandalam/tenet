@@ -92,9 +92,31 @@ function EvaluatePage() {
   const taRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Hydrate in-flight conversation
+  // Hydrate: history-view mode OR in-flight conversation
   useEffect(() => {
     try {
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get("from");
+      const id = params.get("id");
+      if (from === "history" && id) {
+        const entry = findHistoryEntry(id);
+        if (!entry) {
+          toast.error("That trade is no longer in your history");
+          navigate({ to: "/history", replace: true });
+          return;
+        }
+        setHistoryEntry(entry);
+        const conv = entry.conversation;
+        if (Array.isArray(conv.entries) && conv.entries.length > 0) {
+          setEntries(conv.entries as ChatEntry[]);
+        }
+        if (Array.isArray(conv.attached_images)) {
+          setAttachedImages(conv.attached_images as AttachedImage[]);
+        }
+        setLatest(entry.verdict_full);
+        setHydrated(true);
+        return;
+      }
       const raw = sessionStorage.getItem("tenet_conversation_in_flight");
       if (raw) {
         const s = JSON.parse(raw) as {
@@ -115,11 +137,11 @@ function EvaluatePage() {
     }
     setHydrated(true);
     setTimeout(() => taRef.current?.focus(), 50);
-  }, []);
+  }, [navigate]);
 
-  // Persist on change
+  // Persist on change (skip in history-view mode)
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || isHistory) return;
     try {
       const payload = {
         entries,
@@ -132,7 +154,7 @@ function EvaluatePage() {
     } catch {
       // ignore
     }
-  }, [entries, attachedImages, referencedIds, latest, hydrated]);
+  }, [entries, attachedImages, referencedIds, latest, hydrated, isHistory]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
