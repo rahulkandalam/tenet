@@ -540,8 +540,9 @@ function EvaluatePage() {
             <div className="max-w-[720px] mx-auto flex items-end gap-3">
               <button
                 onClick={onPickFile}
+                disabled={isHistory}
                 title="Attach chart image"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[#888] hover:text-teal hover:bg-teal-soft transition-colors shrink-0"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#888] hover:text-teal hover:bg-teal-soft transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#888]"
               >
                 <Paperclip className="w-4 h-4" />
               </button>
@@ -550,7 +551,8 @@ function EvaluatePage() {
                   ref={taRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  disabled={micState === "recording"}
+                  disabled={micState === "recording" || isHistory}
+                  readOnly={isHistory}
                   onKeyDown={(e) => {
                     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
                       e.preventDefault();
@@ -559,11 +561,13 @@ function EvaluatePage() {
                   }}
                   rows={1}
                   placeholder={
-                    micState === "recording"
-                      ? "Listening..."
-                      : transcribing
-                        ? ""
-                        : "Type your trade plan here..."
+                    isHistory
+                      ? "This is a saved trade. Click 'Start new trade' to begin a new check."
+                      : micState === "recording"
+                        ? "Listening..."
+                        : transcribing
+                          ? ""
+                          : "Type your trade plan here..."
                   }
                   className="w-full resize-none px-3 py-2.5 pr-9 text-[14px] rounded-md border border-border bg-surface focus:outline-none focus:border-teal max-h-[120px] disabled:opacity-60"
                 />
@@ -574,7 +578,7 @@ function EvaluatePage() {
                   </div>
                 )}
               </div>
-              <MicButton state={micState} onClick={toggleMic} disabled={transcribing || loading} />
+              <MicButton state={micState} onClick={toggleMic} disabled={transcribing || loading || isHistory} />
               <button
                 onClick={onSendClick}
                 disabled={!canSend}
