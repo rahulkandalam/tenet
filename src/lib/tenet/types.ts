@@ -136,13 +136,20 @@ export function loadRulebookFor(user: string): Rulebook | null {
 }
 
 export function isRulebookComplete(rb: Rulebook | null): boolean {
+  if (!rb) return false;
+  if (rb.format === "free_text") {
+    return typeof rb.text === "string" && rb.text.trim().length > 0;
+  }
   return !!(
-    rb &&
     typeof rb.strategy_name === "string" &&
     rb.strategy_name.trim().length > 0 &&
     Array.isArray(rb.qualifying_criteria) && rb.qualifying_criteria.length > 0 &&
     Array.isArray(rb.entry_rules) && rb.entry_rules.length > 0 &&
-    Array.isArray(rb.exit_rules) && rb.exit_rules.length > 0 &&
-    Array.isArray(rb.risk_management) && rb.risk_management.length > 0
+    Array.isArray(rb.exit_rules) && rb.exit_rules.length > 0
   );
+}
+
+export function getRulebookFormat(rb: Rulebook | null): RulebookFormat | null {
+  if (!rb) return null;
+  return rb.format ?? "structured";
 }
