@@ -1,4 +1,8 @@
+export type RulebookFormat = "structured" | "free_text";
+
 export type Rulebook = {
+  format?: RulebookFormat;
+  // structured fields
   strategy_name: string;
   qualifying_criteria: string[];
   entry_rules: string[];
@@ -6,7 +10,12 @@ export type Rulebook = {
   risk_management: string[];
   soft_meta_rules: string[];
   activated_at?: string;
+  // free_text fields
+  text?: string;
+  source_filename?: string;
+  uploaded_at?: string;
 };
+
 
 export type VerdictWord = "GO AHEAD" | "PROCEED WITH CAUTION" | "NO GO" | "PROMPT";
 
