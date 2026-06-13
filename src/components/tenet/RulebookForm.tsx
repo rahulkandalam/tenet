@@ -10,7 +10,7 @@ const SECTIONS = [
   { key: "qualifying_criteria", title: "Qualifying criteria", helper: "Conditions the market must meet before you consider a trade.", placeholder: "e.g., Price above 200 EMA on H4", addLabel: "+ Add a criterion", required: true },
   { key: "entry_rules", title: "Entry rules", helper: "How and when you actually enter a position.", placeholder: "e.g., H1 close above prior session high", addLabel: "+ Add an entry rule", required: true },
   { key: "exit_rules", title: "Exit rules", helper: "Stops, targets, and invalidation conditions.", placeholder: "e.g., Stop below entry candle low", addLabel: "+ Add an exit rule", required: true },
-  { key: "risk_management", title: "Risk / safety", helper: "Risk per trade, per day, per week.", placeholder: "e.g., 1% per trade", addLabel: "+ Add a risk rule", required: true },
+  { key: "risk_management", title: "Risk / safety", helper: "Risk per trade, per day, per week. Optional. Skip this section if your prop firm enforces risk limits at the platform level.", placeholder: "e.g., 1% per trade", addLabel: "+ Add a risk rule", required: false },
   { key: "soft_meta_rules", title: "Soft meta-rules", helper: "Situations where you skip trading even if the setup looks good (news, holidays, fatigue, etc.).", placeholder: "e.g., No trades during NFP", addLabel: "+ Add a soft rule", required: false },
 ] as const;
 
@@ -55,6 +55,7 @@ export function RulebookForm({ mode }: { mode: Mode }) {
     }
     const existing = loadRulebook();
     const rb: Rulebook = {
+      format: "structured",
       strategy_name: strategyName.trim(),
       qualifying_criteria: data.qualifying_criteria.map((v) => v.trim()).filter(Boolean),
       entry_rules: data.entry_rules.map((v) => v.trim()).filter(Boolean),

@@ -166,7 +166,10 @@ function VerdictPage() {
 
             <div className="mt-8 pt-5 border-t border-border flex items-center justify-between">
               <button
-                onClick={() => navigate({ to: "/evaluate" })}
+                onClick={() => {
+                  try { sessionStorage.removeItem("tenet_verdict"); } catch { /* ignore */ }
+                  navigate({ to: "/evaluate" });
+                }}
                 className="px-4 py-2 border border-border text-ink-secondary rounded-md text-[14px] hover:bg-[#F5F5F0]"
               >Edit trade plan</button>
               {w === "GO AHEAD" && (
