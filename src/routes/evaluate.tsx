@@ -9,8 +9,11 @@ import {
   getCurrentUser,
   getEvalCount,
   incrementEvalCount,
+  findHistoryEntry,
+  relativeTime,
   DAILY_LIMIT,
   type EvalResponse,
+  type HistoryEntry,
 } from "@/lib/tenet/types";
 
 export const Route = createFileRoute("/evaluate")({
