@@ -516,6 +516,16 @@ function EvaluatePage() {
                   </div>
                 </div>
               )}
+              {isHistory && historyEntry && (
+                <div className="flex justify-start">
+                  <button
+                    onClick={() => navigate({ to: "/verdict", search: { id: historyEntry.id } as never })}
+                    className="px-3 py-1.5 border border-[#ECEAE4] text-ink-secondary rounded-md text-[13px] hover:bg-[#F5F5F0]"
+                  >
+                    Open full verdict →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           <div className="border-t border-border bg-surface px-6 py-4">
