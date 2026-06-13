@@ -77,6 +77,8 @@ function EvaluatePage() {
   const [confirmRemove, setConfirmRemove] = useState<AttachedImage | null>(null);
   const [retryAvailable, setRetryAvailable] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [historyEntry, setHistoryEntry] = useState<HistoryEntry | null>(null);
+  const isHistory = !!historyEntry;
 
   // mic state
   const [micState, setMicState] = useState<"idle" | "recording" | "stopped">("idle");
