@@ -30,10 +30,8 @@ async function extractText(file: File): Promise<string> {
   }
   if (name.endsWith(".pdf")) {
     const pdfjs = await import("pdfjs-dist");
-    // Disable worker for simplicity in browser/edge
     try {
-      // @ts-expect-error worker config
-      pdfjs.GlobalWorkerOptions.workerSrc = "";
+      (pdfjs as { GlobalWorkerOptions?: { workerSrc: string } }).GlobalWorkerOptions!.workerSrc = "";
     } catch {
       // ignore
     }
@@ -44,7 +42,7 @@ async function extractText(file: File): Promise<string> {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
-      out += content.items.map((it: { str?: string }) => it.str ?? "").join(" ") + "\n\n";
+      out += content.items.map((it) => ("str" in it ? it.str : "")).join(" ") + "\n\n";
     }
     return out;
   }
