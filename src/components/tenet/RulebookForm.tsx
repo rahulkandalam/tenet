@@ -55,6 +55,7 @@ export function RulebookForm({ mode }: { mode: Mode }) {
     }
     const existing = loadRulebook();
     const rb: Rulebook = {
+      format: "structured",
       strategy_name: strategyName.trim(),
       qualifying_criteria: data.qualifying_criteria.map((v) => v.trim()).filter(Boolean),
       entry_rules: data.entry_rules.map((v) => v.trim()).filter(Boolean),
