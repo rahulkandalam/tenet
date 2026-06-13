@@ -1,8 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Check, X, CircleDot } from "lucide-react";
-import type { EvalResponse } from "@/lib/tenet/types";
+import { Check, X, CircleDot, Bookmark } from "lucide-react";
+import {
+  findHistoryEntry,
+  relativeTime,
+  saveHistoryEntry,
+  type EvalResponse,
+  type HistoryEntry,
+} from "@/lib/tenet/types";
 
 export const Route = createFileRoute("/verdict")({
   head: () => ({ meta: [{ title: "Verdict — Tenet" }] }),
@@ -37,15 +43,36 @@ function VerdictPage() {
   const navigate = useNavigate();
   const [verdict, setVerdict] = useState<EvalResponse | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [historyEntry, setHistoryEntry] = useState<HistoryEntry | null>(null);
+  const [saved, setSaved] = useState(false);
+
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem("tenet_verdict");
-      if (raw) setVerdict(JSON.parse(raw) as EvalResponse);
-    } catch {}
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (id) {
+      const entry = findHistoryEntry(id);
+      if (!entry) {
+        toast.error("That trade is no longer in your history");
+        navigate({ to: "/history", replace: true });
+        return;
+      }
+      setHistoryEntry(entry);
+      setVerdict(entry.verdict_full);
+    } else {
+      try {
+        const raw = sessionStorage.getItem("tenet_verdict");
+        if (raw) setVerdict(JSON.parse(raw) as EvalResponse);
+      } catch {
+        // ignore
+      }
+    }
     setHydrated(true);
-  }, []);
+  }, [navigate]);
+
   const [overrideOpen, setOverrideOpen] = useState(false);
   const [overrideText, setOverrideText] = useState("");
+
+  const sections = useMemo(() => parseClosingNote(verdict?.closing_note), [verdict]);
 
   if (!hydrated) {
     return <div className="min-h-screen bg-background" />;
@@ -85,14 +112,55 @@ function VerdictPage() {
     toast.error("Override recorded. Trade not endorsed by Tenet.");
   };
 
-  const sections = parseClosingNote(verdict.closing_note);
   const hasStructured = sections.whats_good || sections.whats_bad || sections.motivation;
   const hasClosing = hasStructured || sections.legacy;
+  const isHistoryView = !!historyEntry;
+  const canSave = !isHistoryView && w !== "PROMPT";
+
+  const onSaveToHistory = () => {
+    if (!verdict || saved) return;
+    try {
+      const raw = sessionStorage.getItem("tenet_conversation_in_flight");
+      let convEntries: unknown[] = [];
+      let convImages: unknown[] = [];
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.entries)) convEntries = parsed.entries;
+        if (parsed && Array.isArray(parsed.attachedImages)) convImages = parsed.attachedImages;
+      }
+      const entry: HistoryEntry = {
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        pair: ep.pair,
+        direction: ep.direction,
+        risk: ep.size_or_risk,
+        rr: ep.rr_ratio,
+        verdict_word: w,
+        summary: verdict.summary,
+        conversation: {
+          entries: convEntries,
+          attached_images: convImages,
+          extracted_plan: ep,
+        },
+        verdict_full: verdict,
+      };
+      saveHistoryEntry(entry);
+      setSaved(true);
+      toast.success("Saved to history", { duration: 3000 });
+    } catch {
+      toast.error("Couldn't save to history");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="h-12 px-5 flex items-center justify-between border-b border-border bg-surface">
-        <button onClick={() => navigate({ to: "/evaluate" })} className="text-[14px] text-ink-secondary hover:text-ink">← Back to conversation</button>
+        <button
+          onClick={() => navigate({ to: isHistoryView ? "/history" : "/evaluate" })}
+          className="text-[14px] text-ink-secondary hover:text-ink"
+        >
+          ← {isHistoryView ? "Back to history" : "Back to conversation"}
+        </button>
         <div className="text-[14px] text-ink-secondary flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-teal inline-block" /> Trade check verdict
         </div>
@@ -164,14 +232,45 @@ function VerdictPage() {
               ))}
             </div>
 
-            <div className="mt-8 pt-5 border-t border-border flex items-center justify-between">
-              <button
-                onClick={() => {
-                  try { sessionStorage.removeItem("tenet_verdict"); } catch { /* ignore */ }
-                  navigate({ to: "/evaluate" });
-                }}
-                className="px-4 py-2 border border-border text-ink-secondary rounded-md text-[14px] hover:bg-[#F5F5F0]"
-              >Edit trade plan</button>
+            <div className="mt-8 pt-5 border-t border-border flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                {isHistoryView ? (
+                  <button
+                    onClick={() => navigate({ to: "/history" })}
+                    className="px-4 py-2 border border-[#ECEAE4] text-ink-secondary rounded-lg text-[14px] hover:bg-[#F5F5F0]"
+                  >
+                    Back to history
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      try { sessionStorage.removeItem("tenet_verdict"); } catch { /* ignore */ }
+                      navigate({ to: "/evaluate" });
+                    }}
+                    className="px-4 py-2 border border-border text-ink-secondary rounded-md text-[14px] hover:bg-[#F5F5F0]"
+                  >
+                    Edit trade plan
+                  </button>
+                )}
+                {isHistoryView ? (
+                  <span className="text-[13px] text-ink-secondary italic">
+                    Saved {relativeTime(historyEntry!.timestamp)}
+                  </span>
+                ) : canSave ? (
+                  <button
+                    onClick={onSaveToHistory}
+                    disabled={saved}
+                    className={`inline-flex items-center gap-2 px-4 py-2 border rounded-lg text-[14px] transition-colors ${
+                      saved
+                        ? "border-[#ECEAE4] text-teal cursor-default"
+                        : "border-[#ECEAE4] text-ink-secondary hover:bg-[#F5F5F0]"
+                    }`}
+                  >
+                    {saved ? <Check className="w-4 h-4 text-teal" /> : <Bookmark className="w-4 h-4" />}
+                    {saved ? "Saved" : "Save to history"}
+                  </button>
+                ) : null}
+              </div>
               {w === "GO AHEAD" && (
                 <button className="px-5 py-2.5 bg-teal text-white rounded-md text-[14px] font-medium" onClick={() => toast.success("Acknowledged")}>Acknowledge & proceed</button>
               )}

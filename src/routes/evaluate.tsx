@@ -9,8 +9,11 @@ import {
   getCurrentUser,
   getEvalCount,
   incrementEvalCount,
+  findHistoryEntry,
+  relativeTime,
   DAILY_LIMIT,
   type EvalResponse,
+  type HistoryEntry,
 } from "@/lib/tenet/types";
 
 export const Route = createFileRoute("/evaluate")({
@@ -74,6 +77,8 @@ function EvaluatePage() {
   const [confirmRemove, setConfirmRemove] = useState<AttachedImage | null>(null);
   const [retryAvailable, setRetryAvailable] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [historyEntry, setHistoryEntry] = useState<HistoryEntry | null>(null);
+  const isHistory = !!historyEntry;
 
   // mic state
   const [micState, setMicState] = useState<"idle" | "recording" | "stopped">("idle");
@@ -87,9 +92,31 @@ function EvaluatePage() {
   const taRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Hydrate in-flight conversation
+  // Hydrate: history-view mode OR in-flight conversation
   useEffect(() => {
     try {
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get("from");
+      const id = params.get("id");
+      if (from === "history" && id) {
+        const entry = findHistoryEntry(id);
+        if (!entry) {
+          toast.error("That trade is no longer in your history");
+          navigate({ to: "/history", replace: true });
+          return;
+        }
+        setHistoryEntry(entry);
+        const conv = entry.conversation;
+        if (Array.isArray(conv.entries) && conv.entries.length > 0) {
+          setEntries(conv.entries as ChatEntry[]);
+        }
+        if (Array.isArray(conv.attached_images)) {
+          setAttachedImages(conv.attached_images as AttachedImage[]);
+        }
+        setLatest(entry.verdict_full);
+        setHydrated(true);
+        return;
+      }
       const raw = sessionStorage.getItem("tenet_conversation_in_flight");
       if (raw) {
         const s = JSON.parse(raw) as {
@@ -110,11 +137,11 @@ function EvaluatePage() {
     }
     setHydrated(true);
     setTimeout(() => taRef.current?.focus(), 50);
-  }, []);
+  }, [navigate]);
 
-  // Persist on change
+  // Persist on change (skip in history-view mode)
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || isHistory) return;
     try {
       const payload = {
         entries,
@@ -127,7 +154,7 @@ function EvaluatePage() {
     } catch {
       // ignore
     }
-  }, [entries, attachedImages, referencedIds, latest, hydrated]);
+  }, [entries, attachedImages, referencedIds, latest, hydrated, isHistory]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -355,6 +382,10 @@ function EvaluatePage() {
   };
 
   const runVerdict = () => {
+    if (isHistory && historyEntry) {
+      navigate({ to: "/verdict", search: { id: historyEntry.id } as never });
+      return;
+    }
     if (!latest) return;
     try {
       sessionStorage.setItem("tenet_verdict", JSON.stringify(latest));
@@ -364,9 +395,19 @@ function EvaluatePage() {
     navigate({ to: "/verdict" });
   };
 
+  const startNewTrade = () => {
+    try {
+      sessionStorage.removeItem("tenet_conversation_in_flight");
+      sessionStorage.removeItem("tenet_verdict");
+    } catch {
+      // ignore
+    }
+    window.location.assign("/evaluate");
+  };
+
   const isFinal = latest && latest.verdict_word !== "PROMPT";
   const canSend =
-    (input.trim().length > 0 || micState === "recording") && !loading && !transcribing;
+    (input.trim().length > 0 || micState === "recording") && !loading && !transcribing && !isHistory;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -408,6 +449,19 @@ function EvaluatePage() {
         >
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
             <div className="max-w-[720px] mx-auto flex flex-col gap-5">
+              {isHistory && historyEntry && (
+                <div className="flex items-center justify-between gap-3 bg-[#F5F2EB] rounded-md px-3 py-2">
+                  <div className="text-[13px] text-ink">
+                    Viewing past trade · {relativeTime(historyEntry.timestamp)}
+                  </div>
+                  <button
+                    onClick={startNewTrade}
+                    className="px-3 py-1.5 bg-teal text-white text-[13px] font-medium rounded-md hover:opacity-90"
+                  >
+                    Start new trade
+                  </button>
+                </div>
+              )}
               {entries.map((e, i) => {
                 if (e.kind === "image") {
                   const img = imgById(e.imageId);
@@ -462,6 +516,16 @@ function EvaluatePage() {
                   </div>
                 </div>
               )}
+              {isHistory && historyEntry && (
+                <div className="flex justify-start">
+                  <button
+                    onClick={() => navigate({ to: "/verdict", search: { id: historyEntry.id } as never })}
+                    className="px-3 py-1.5 border border-[#ECEAE4] text-ink-secondary rounded-md text-[13px] hover:bg-[#F5F5F0]"
+                  >
+                    Open full verdict →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           <div className="border-t border-border bg-surface px-6 py-4">
@@ -476,8 +540,9 @@ function EvaluatePage() {
             <div className="max-w-[720px] mx-auto flex items-end gap-3">
               <button
                 onClick={onPickFile}
+                disabled={isHistory}
                 title="Attach chart image"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[#888] hover:text-teal hover:bg-teal-soft transition-colors shrink-0"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#888] hover:text-teal hover:bg-teal-soft transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#888]"
               >
                 <Paperclip className="w-4 h-4" />
               </button>
@@ -486,7 +551,8 @@ function EvaluatePage() {
                   ref={taRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  disabled={micState === "recording"}
+                  disabled={micState === "recording" || isHistory}
+                  readOnly={isHistory}
                   onKeyDown={(e) => {
                     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
                       e.preventDefault();
@@ -495,11 +561,13 @@ function EvaluatePage() {
                   }}
                   rows={1}
                   placeholder={
-                    micState === "recording"
-                      ? "Listening..."
-                      : transcribing
-                        ? ""
-                        : "Type your trade plan here..."
+                    isHistory
+                      ? "This is a saved trade. Click 'Start new trade' to begin a new check."
+                      : micState === "recording"
+                        ? "Listening..."
+                        : transcribing
+                          ? ""
+                          : "Type your trade plan here..."
                   }
                   className="w-full resize-none px-3 py-2.5 pr-9 text-[14px] rounded-md border border-border bg-surface focus:outline-none focus:border-teal max-h-[120px] disabled:opacity-60"
                 />
@@ -510,7 +578,7 @@ function EvaluatePage() {
                   </div>
                 )}
               </div>
-              <MicButton state={micState} onClick={toggleMic} disabled={transcribing || loading} />
+              <MicButton state={micState} onClick={toggleMic} disabled={transcribing || loading || isHistory} />
               <button
                 onClick={onSendClick}
                 disabled={!canSend}
