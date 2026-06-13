@@ -449,6 +449,19 @@ function EvaluatePage() {
         >
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
             <div className="max-w-[720px] mx-auto flex flex-col gap-5">
+              {isHistory && historyEntry && (
+                <div className="flex items-center justify-between gap-3 bg-[#F5F2EB] rounded-md px-3 py-2">
+                  <div className="text-[13px] text-ink">
+                    Viewing past trade · {relativeTime(historyEntry.timestamp)}
+                  </div>
+                  <button
+                    onClick={startNewTrade}
+                    className="px-3 py-1.5 bg-teal text-white text-[13px] font-medium rounded-md hover:opacity-90"
+                  >
+                    Start new trade
+                  </button>
+                </div>
+              )}
               {entries.map((e, i) => {
                 if (e.kind === "image") {
                   const img = imgById(e.imageId);
