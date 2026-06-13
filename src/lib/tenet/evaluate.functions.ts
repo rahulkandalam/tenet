@@ -34,8 +34,14 @@ export const evaluateTrade = createServerFn({ method: "POST" })
       )
       .join("\n");
 
+    const rb = data.rulebook as { format?: string; text?: string } | null;
+    const rulebookBlock =
+      rb && rb.format === "free_text" && typeof rb.text === "string"
+        ? `RULEBOOK (free-form text uploaded by trader):\n\n${rb.text}\n\n`
+        : `RULEBOOK (structured):\n${JSON.stringify(data.rulebook, null, 2)}\n`;
+
     const userText = `<RULEBOOK>
-${JSON.stringify(data.rulebook, null, 2)}
+${rulebookBlock}
 </RULEBOOK>
 
 <CONVERSATION_HISTORY>
