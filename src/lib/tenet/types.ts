@@ -82,6 +82,91 @@ export function rulebookKeyFor(user: string): string {
   return `tenet_${user}_rulebook`;
 }
 
+export function historyKeyFor(user: string): string {
+  return `tenet_${user}_history`;
+}
+
+export const HISTORY_LIMIT = 20;
+
+export type HistoryEntry = {
+  id: string;
+  timestamp: string;
+  pair: string | null;
+  direction: string | null;
+  risk: string | null;
+  rr: string | null;
+  verdict_word: VerdictWord;
+  summary: string;
+  conversation: {
+    entries: unknown[];
+    attached_images: unknown[];
+    extracted_plan: ExtractedPlan | null;
+  };
+  verdict_full: EvalResponse;
+};
+
+export function loadHistory(): HistoryEntry[] {
+  if (typeof window === "undefined") return [];
+  const user = getCurrentUser();
+  if (!user) return [];
+  try {
+    const raw = localStorage.getItem(historyKeyFor(user));
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? (arr as HistoryEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveHistoryEntry(entry: HistoryEntry): void {
+  if (typeof window === "undefined") return;
+  const user = getCurrentUser();
+  if (!user) return;
+  const cur = loadHistory();
+  const next = [entry, ...cur].slice(0, HISTORY_LIMIT);
+  try {
+    localStorage.setItem(historyKeyFor(user), JSON.stringify(next));
+  } catch {
+    // ignore
+  }
+}
+
+export function findHistoryEntry(id: string): HistoryEntry | null {
+  return loadHistory().find((e) => e.id === id) ?? null;
+}
+
+export function relativeTime(iso: string): string {
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return "";
+  const diffSec = Math.max(1, Math.floor((Date.now() - t) / 1000));
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const m = Math.floor(diffSec / 60);
+  if (m < 60) return `${m} min${m === 1 ? "" : "s"} ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} hour${h === 1 ? "" : "s"} ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d} day${d === 1 ? "" : "s"} ago`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo} month${mo === 1 ? "" : "s"} ago`;
+  const y = Math.floor(mo / 12);
+  return `${y} year${y === 1 ? "" : "s"} ago`;
+}
+
+export function formatHistoryTimestamp(iso: string): string {
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return "";
+  const now = new Date();
+  const sameDay =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+  const hhmm = d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  if (sameDay) return `Today, ${hhmm}`;
+  const datePart = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return `${datePart}, ${hhmm}`;
+}
+
 export function todayLocalISO(): string {
   return new Date().toLocaleDateString("en-CA");
 }
