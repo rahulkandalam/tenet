@@ -382,6 +382,10 @@ function EvaluatePage() {
   };
 
   const runVerdict = () => {
+    if (isHistory && historyEntry) {
+      navigate({ to: "/verdict", search: { id: historyEntry.id } as never });
+      return;
+    }
     if (!latest) return;
     try {
       sessionStorage.setItem("tenet_verdict", JSON.stringify(latest));
@@ -391,9 +395,19 @@ function EvaluatePage() {
     navigate({ to: "/verdict" });
   };
 
+  const startNewTrade = () => {
+    try {
+      sessionStorage.removeItem("tenet_conversation_in_flight");
+      sessionStorage.removeItem("tenet_verdict");
+    } catch {
+      // ignore
+    }
+    window.location.assign("/evaluate");
+  };
+
   const isFinal = latest && latest.verdict_word !== "PROMPT";
   const canSend =
-    (input.trim().length > 0 || micState === "recording") && !loading && !transcribing;
+    (input.trim().length > 0 || micState === "recording") && !loading && !transcribing && !isHistory;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
