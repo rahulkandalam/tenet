@@ -333,7 +333,9 @@ function EvaluatePage() {
 
     const priorEntries = entries;
     const currentImageIds = attachedImages.map((i) => i.id);
-    const newEntries: ChatEntry[] = [...entries, { kind: "text", role: "user", content: text }];
+    const newEntries: ChatEntry[] = text
+      ? [...entries, { kind: "text", role: "user", content: text }]
+      : [...entries];
     setEntries(newEntries);
     setInput("");
     setLoading(true);
