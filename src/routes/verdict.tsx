@@ -76,6 +76,65 @@ function VerdictPage() {
   const [overrideOpen, setOverrideOpen] = useState(false);
   const [overrideText, setOverrideText] = useState("");
 
+  const [feedback, setFeedback] = useState<VerdictFeedback | null>(null);
+  const [showCommentBox, setShowCommentBox] = useState(false);
+  const [commentDraft, setCommentDraft] = useState("");
+
+  const verdictId = useMemo(() => {
+    if (historyEntry) return historyEntry.id;
+    if (verdict) return hashVerdictId(verdict);
+    return "";
+  }, [historyEntry, verdict]);
+
+  useEffect(() => {
+    if (!verdictId) return;
+    const map = loadFeedbackMap();
+    let fb: VerdictFeedback | null = map[verdictId] ?? null;
+    if (!fb && historyEntry?.feedback_rating) {
+      fb = {
+        rating: historyEntry.feedback_rating,
+        comment: historyEntry.feedback_comment ?? "",
+        timestamp: historyEntry.timestamp,
+        verdict_word: historyEntry.verdict_word,
+      };
+    }
+    if (fb) {
+      setFeedback(fb);
+      setCommentDraft(fb.comment);
+    }
+  }, [verdictId, historyEntry]);
+
+  const onFeedback = (rating: "up" | "down") => {
+    if (!verdict || !verdictId || feedback) return;
+    const fb: VerdictFeedback = {
+      rating,
+      comment: "",
+      timestamp: new Date().toISOString(),
+      verdict_word: verdict.verdict_word,
+    };
+    setFeedback(fb);
+    saveFeedback(verdictId, fb);
+    if (rating === "up") {
+      toast.success("Thanks for the feedback", { duration: 3000 });
+    } else {
+      toast("Thanks for the feedback", {
+        duration: 3000,
+        icon: <ThumbsDown className="w-4 h-4 text-[#B85E00]" />,
+      });
+      setShowCommentBox(true);
+    }
+  };
+
+  const submitComment = () => {
+    if (!feedback || !verdictId) return;
+    const trimmed = commentDraft.trim().slice(0, 280);
+    const updated: VerdictFeedback = { ...feedback, comment: trimmed };
+    setFeedback(updated);
+    saveFeedback(verdictId, updated);
+    setShowCommentBox(false);
+    toast.success("Comment saved", { duration: 2500 });
+  };
+
   const sections = useMemo(() => parseClosingNote(verdict?.closing_note), [verdict]);
 
   if (!hydrated) {
