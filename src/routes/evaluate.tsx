@@ -185,7 +185,13 @@ function EvaluatePage() {
   }, [entries, attachedImages, referencedIds, latest, hydrated, isHistory]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    const lenIncreased = entries.length > prevEntriesLenRef.current;
+    const loadingTurnedOn = loading && !prevLoadingRef.current;
+    if (lenIncreased || loadingTurnedOn) {
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    }
+    prevEntriesLenRef.current = entries.length;
+    prevLoadingRef.current = loading;
   }, [entries, loading]);
 
   useEffect(() => {
