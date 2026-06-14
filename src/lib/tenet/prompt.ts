@@ -50,7 +50,7 @@ Note: hard rules marked Failed with either the "[within tolerance]" or "[unconfi
 
 PROMPT (verdict_word) remains reserved for PHASE 1 completeness gaps only — when the trader has not stated entry, exit, risk, or reasoning.
 
-PROMPT (verdict_word) is reserved for PHASE 1 completeness gaps only.
+
 
 # OUTPUT STRUCTURE
 
