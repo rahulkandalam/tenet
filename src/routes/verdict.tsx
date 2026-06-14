@@ -206,6 +206,8 @@ function VerdictPage() {
           extracted_plan: ep,
         },
         verdict_full: verdict,
+        feedback_rating: feedback?.rating ?? null,
+        feedback_comment: feedback?.comment ?? "",
       };
       saveHistoryEntry(entry);
       setSaved(true);
