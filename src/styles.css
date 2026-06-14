@@ -89,3 +89,9 @@
   100% { transform: scale(1.35); opacity: 0; }
 }
 .animate-tenet-pulse { animation: tenet-pulse 1.4s ease-out infinite; }
+
+@keyframes tenet-thinking-pulse {
+  0%, 100% { border-color: #ECEAE4; }
+  50% { border-color: #1D9E75; }
+}
+.tenet-thinking-pulse { animation: tenet-thinking-pulse 2s ease-in-out infinite; }
