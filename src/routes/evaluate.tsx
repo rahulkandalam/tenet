@@ -451,7 +451,10 @@ function EvaluatePage() {
 
   const isFinal = latest && latest.verdict_word !== "PROMPT";
   const canSend =
-    (input.trim().length > 0 || micState === "recording") && !loading && !transcribing && !isHistory;
+    (input.trim().length > 0 || attachedImages.length > 0 || micState === "recording") &&
+    !loading &&
+    !transcribing &&
+    !isHistory;
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
