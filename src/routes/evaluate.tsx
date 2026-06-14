@@ -361,7 +361,7 @@ function EvaluatePage() {
     try {
       const fullHistory = newEntries
         .filter((e): e is Extract<ChatEntry, { kind: "text" }> => e.kind === "text")
-        .slice(0, -1)
+        .slice(0, text ? -1 : undefined)
         .map((e) => ({ role: e.role, content: e.content }));
       const history = fullHistory.slice(-8);
       const payload = {
