@@ -336,9 +336,11 @@ function EvaluatePage() {
     setEntries(newEntries);
     setInput("");
     setLoading(true);
+    startAiProgress();
     setRetryAvailable(false);
 
     const rollback = (friendly: string) => {
+      stopAiProgress();
       setEntries(priorEntries);
       setInput(text);
       setRetryAvailable(true);
@@ -376,6 +378,10 @@ function EvaluatePage() {
         rollback("Tenet's response couldn't be read. Your plan is saved — retry?");
         return;
       }
+      // Snap progress to 100, brief pause for the bar to fill, then commit.
+      setAiProgress(100);
+      await new Promise((r) => setTimeout(r, 150));
+      stopAiProgress();
       setLatest(parsed);
       const aiText =
         parsed.verdict_word === "PROMPT"
@@ -402,6 +408,7 @@ function EvaluatePage() {
       }
       rollback(friendly);
     } finally {
+      stopAiProgress();
       setLoading(false);
     }
   };
