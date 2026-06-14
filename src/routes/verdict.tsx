@@ -293,6 +293,8 @@ function VerdictPage() {
                     <div className="text-[14px] font-semibold text-ink">{r.label}</div>
                     <div className={`mt-1 text-[13px] ${r.status === "Failed" ? palette.text : "text-ink-secondary"}`}>{r.explanation}</div>
                   </div>
+                </div>
+              ))}
             </div>
 
             <div className="mt-6 flex flex-col items-start">
@@ -352,8 +354,6 @@ function VerdictPage() {
                   Your note: "{feedback.comment}"
                 </div>
               )}
-            </div>
-              ))}
             </div>
 
             <div className="mt-8 pt-5 border-t border-border flex items-center justify-between gap-3 flex-wrap">
