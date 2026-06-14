@@ -80,6 +80,11 @@ function EvaluatePage() {
   const [historyEntry, setHistoryEntry] = useState<HistoryEntry | null>(null);
   const isHistory = !!historyEntry;
 
+  // ai progress state
+  const [aiProgress, setAiProgress] = useState(0);
+  const [aiElapsed, setAiElapsed] = useState(0);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // mic state
   const [micState, setMicState] = useState<"idle" | "recording" | "stopped">("idle");
   const [transcribing, setTranscribing] = useState(false);
@@ -91,6 +96,29 @@ function EvaluatePage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const prevEntriesLenRef = useRef(0);
+  const prevLoadingRef = useRef(false);
+
+  const startAiProgress = () => {
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    const start = Date.now();
+    setAiProgress(0);
+    setAiElapsed(0);
+    progressIntervalRef.current = setInterval(() => {
+      const ms = Date.now() - start;
+      setAiElapsed(Math.floor(ms / 1000));
+      const t = ms / 1000;
+      const p = t < 20 ? (t / 20) * 90 : 90 + 10 * (1 - Math.exp(-(t - 20) / 15));
+      setAiProgress(p);
+    }, 50);
+  };
+  const stopAiProgress = () => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+  };
+  useEffect(() => () => stopAiProgress(), []);
 
   // Hydrate: history-view mode OR in-flight conversation
   useEffect(() => {
@@ -157,7 +185,13 @@ function EvaluatePage() {
   }, [entries, attachedImages, referencedIds, latest, hydrated, isHistory]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    const lenIncreased = entries.length > prevEntriesLenRef.current;
+    const loadingTurnedOn = loading && !prevLoadingRef.current;
+    if (lenIncreased || loadingTurnedOn) {
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    }
+    prevEntriesLenRef.current = entries.length;
+    prevLoadingRef.current = loading;
   }, [entries, loading]);
 
   useEffect(() => {
@@ -302,9 +336,11 @@ function EvaluatePage() {
     setEntries(newEntries);
     setInput("");
     setLoading(true);
+    startAiProgress();
     setRetryAvailable(false);
 
     const rollback = (friendly: string) => {
+      stopAiProgress();
       setEntries(priorEntries);
       setInput(text);
       setRetryAvailable(true);
@@ -342,6 +378,10 @@ function EvaluatePage() {
         rollback("Tenet's response couldn't be read. Your plan is saved — retry?");
         return;
       }
+      // Snap progress to 100, brief pause for the bar to fill, then commit.
+      setAiProgress(100);
+      await new Promise((r) => setTimeout(r, 150));
+      stopAiProgress();
       setLatest(parsed);
       const aiText =
         parsed.verdict_word === "PROMPT"
@@ -368,6 +408,7 @@ function EvaluatePage() {
       }
       rollback(friendly);
     } finally {
+      stopAiProgress();
       setLoading(false);
     }
   };
@@ -410,7 +451,8 @@ function EvaluatePage() {
     (input.trim().length > 0 || micState === "recording") && !loading && !transcribing && !isHistory;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
+
       <header className="h-12 px-5 flex items-center justify-between border-b border-border bg-surface">
         <button onClick={onBack} className="text-[14px] text-ink-secondary hover:text-ink">
           ← Back to Home
@@ -503,15 +545,25 @@ function EvaluatePage() {
                 );
               })}
               {loading && (
-                <div className="flex flex-col items-start gap-1.5">
+                <div className="flex flex-col items-start gap-1.5 mt-3">
                   <div className="text-[11px] text-ink-secondary flex items-center gap-1.5">
                     <span className="w-1 h-1 rounded-full bg-teal inline-block" /> Tenet
                   </div>
-                  <div className="bg-teal-soft border-l-2 border-teal rounded-md px-3 py-3">
-                    <div className="flex gap-1.5">
-                      <span className="tenet-dot w-1.5 h-1.5 rounded-full bg-teal inline-block" />
-                      <span className="tenet-dot w-1.5 h-1.5 rounded-full bg-teal inline-block" />
-                      <span className="tenet-dot w-1.5 h-1.5 rounded-full bg-teal inline-block" />
+                  <div
+                    className="bg-surface border border-[#ECEAE4] rounded-lg p-4 w-[80%] tenet-thinking-pulse"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Loader2 className="w-4 h-4 text-teal animate-spin" />
+                        <span className="ml-2 text-[14px] text-ink">Thinking…</span>
+                      </div>
+                      <span className="text-[13px] font-mono text-ink-secondary">{aiElapsed}s</span>
+                    </div>
+                    <div className="mt-3 w-full h-1 rounded-full bg-[#ECEAE4] overflow-hidden">
+                      <div
+                        className="h-1 rounded-full bg-teal"
+                        style={{ width: `${aiProgress}%`, transition: "width 100ms linear" }}
+                      />
                     </div>
                   </div>
                 </div>
