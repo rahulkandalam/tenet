@@ -689,7 +689,7 @@ function EvaluatePage() {
               <div className="max-w-[720px] mx-auto mt-3 flex justify-end">
                 <button
                   onClick={() => void sendMessage()}
-                  disabled={loading || !input.trim()}
+                  disabled={loading || (!input.trim() && attachedImages.length === 0)}
                   className="px-3 py-1.5 text-[14px] border border-teal text-teal rounded-md hover:bg-teal-soft disabled:opacity-50"
                 >
                   Retry
