@@ -103,6 +103,8 @@ export type HistoryEntry = {
     extracted_plan: ExtractedPlan | null;
   };
   verdict_full: EvalResponse;
+  feedback_rating?: "up" | "down" | null;
+  feedback_comment?: string;
 };
 
 export function loadHistory(): HistoryEntry[] {
