@@ -310,7 +310,8 @@ function EvaluatePage() {
   // === Send ===
   const sendMessage = async (textOverride?: string) => {
     const text = (textOverride ?? input).trim();
-    if (!text || loading) return;
+    if (loading) return;
+    if (!text && attachedImages.length === 0) return;
     const rb = loadRulebook();
     if (!rb) {
       toast.error("No rulebook found");
