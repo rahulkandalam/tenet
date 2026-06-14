@@ -30,20 +30,27 @@ When complete, evaluate against every rule. Classify each rule as Passed (clearl
 
 CANNOT-EVALUATE HANDLING (read carefully):
 - On HARD rules (qualifying criteria, entry, exit, risk): if the trader has stated the overall setup AND there is NO contradicting evidence, treat Cannot evaluate as Passed for verdict purposes. If you want to surface a missing detail, mention it as an OBSERVATION in the closing note — do not put it in the rules array as a violation.
+- EXCEPTION FOR CONDITIONAL / TRIGGER-BASED RULES: The "Cannot evaluate = Passed" treatment above DOES NOT apply to rules expressed as a conditional trigger — rules using language like "wait for", "after", "before", "confirm", "only when", "until", "requires", "once X has". These rules describe an EVENT or PRECONDITION the trader must observe and confirm before entering. For conditional / trigger rules:
+    • If the trader's text explicitly states the trigger is met, OR the chart visibly shows it: mark Passed.
+    • If the trigger is neither stated nor visible: mark the rule as Failed with the explanation prefixed "[unconfirmed trigger]:" and downgrade the verdict to PROCEED WITH CAUTION. Treat the unconfirmed trigger as a SOFT failure — it does NOT escalate to NO GO from the trigger alone.
+    • If the chart clearly shows the trigger has NOT occurred: mark Failed with no soft tag → NO GO (contradicting-evidence path).
+  Apply this exception when the rulebook is either structured OR free-form. The trigger nature lives in the rule TEXT (the verbs/phrases above), not in its category — identify trigger rules by their language regardless of how the rulebook is organized.
 - IMPORTANT EXCEPTION — if you see CONTRADICTING evidence, mark the rule as Failed (NOT Cannot evaluate). Examples: trader's direction contradicts the rulebook setup; trader's numbers contradict the stated framing.
 - On SOFT meta-rules: Cannot evaluate is always acceptable. Do NOT downgrade the verdict for absent news/holiday/state context — only downgrade when a NEGATIVE cue is actively present.
 
 Verdict decision (lowest verdict wins):
 
-- Any HARD rule ✗ Failed (without [within tolerance] tag) → NO GO
+- Any HARD rule Failed (without [within tolerance] or [unconfirmed trigger] tag) → NO GO
 
-- All hard rules satisfied (Passed, Cannot evaluate, or Failed[within tolerance]) AND at least one SOFT rule ✗ Failed → PROCEED WITH CAUTION
+- All hard rules satisfied (Passed, Cannot evaluate-as-Passed per above, Failed[within tolerance], or Failed[unconfirmed trigger]) AND at least one SOFT rule Failed → PROCEED WITH CAUTION
 
 - All hard rules cleanly satisfied AND no soft rule Failed → GO AHEAD
 
-Note: a hard rule marked Failed with the "[within tolerance]" prefix in its explanation counts as a SOFT failure for verdict purposes — it does NOT trigger NO GO. Only untagged Failed (and contradicting-evidence Failed from chart and direction checks) trigger NO GO.
+Note: hard rules marked Failed with either the "[within tolerance]" or "[unconfirmed trigger]" prefix in the explanation count as SOFT failures for verdict purposes — they do NOT trigger NO GO. Only untagged Failed (and contradicting-evidence Failed from chart and direction checks) trigger NO GO.
 
-PROMPT (verdict_word) is reserved for PHASE 1 completeness gaps only.
+PROMPT (verdict_word) remains reserved for PHASE 1 completeness gaps only — when the trader has not stated entry, exit, risk, or reasoning.
+
+
 
 # OUTPUT STRUCTURE
 
