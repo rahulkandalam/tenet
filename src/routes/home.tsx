@@ -15,8 +15,66 @@ function HomePage() {
 
   if (!rb) return <AppShell><div /></AppShell>;
 
+  const isFreeText = rb.format === "free_text";
+  const date = rb.activated_at
+    ? new Date(rb.activated_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
+    : "";
+
+  if (isFreeText) {
+    const filename = rb.source_filename ?? "uploaded file";
+    return (
+      <AppShell>
+        <div className="max-w-[1080px] mx-auto px-8 py-10">
+          <h1 className="text-[28px] font-semibold tracking-tight">Home</h1>
+          <p className="mt-2 text-[14px] text-ink-secondary">
+            Your active rulebook · {filename}{date && <> · activated {date}</>}
+          </p>
+
+          <div className="my-7 border-t border-border" />
+
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-teal">My rules</div>
+            <Link to="/rulebook" className="text-[12px] text-ink-secondary hover:text-teal">Edit ›</Link>
+          </div>
+
+          <div className="bg-surface border border-border rounded-lg p-6">
+            <div className="overflow-y-auto" style={{ maxHeight: "60vh" }}>
+              <pre
+                className="whitespace-pre-wrap break-words text-ink"
+                style={{
+                  fontFamily: 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", monospace',
+                  fontSize: "14px",
+                  lineHeight: "1.7",
+                }}
+              >
+                {rb.text}
+              </pre>
+            </div>
+            <div className="mt-4 pt-4 border-t border-border text-[12px] text-ink-secondary">
+              Loaded from {filename}
+            </div>
+          </div>
+
+          <div className="my-8 border-t border-border" />
+
+          <div className="flex flex-col items-center text-center">
+            <button
+              onClick={() => navigate({ to: "/evaluate" })}
+              className="px-7 py-3 bg-teal text-white text-[16px] font-medium rounded-md hover:opacity-90"
+            >
+              Evaluate my idea →
+            </button>
+            <p className="mt-3 text-[12px] italic text-ink-secondary max-w-[480px]">
+              Speak your trade plan — entry, exit, size, why. I'll check it against your own rules in seconds.
+            </p>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  // BRANCH 1 — structured format (or no format key for backward compatibility)
   const total = rb.qualifying_criteria.length + rb.entry_rules.length + rb.exit_rules.length + rb.risk_management.length + rb.soft_meta_rules.length;
-  const date = rb.activated_at ? new Date(rb.activated_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "";
 
   const cards = [
     { title: "Strategy name", content: <div className="text-[14px] text-ink">{rb.strategy_name}</div> },
