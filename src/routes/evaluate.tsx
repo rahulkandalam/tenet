@@ -545,15 +545,25 @@ function EvaluatePage() {
                 );
               })}
               {loading && (
-                <div className="flex flex-col items-start gap-1.5">
+                <div className="flex flex-col items-start gap-1.5 mt-3">
                   <div className="text-[11px] text-ink-secondary flex items-center gap-1.5">
                     <span className="w-1 h-1 rounded-full bg-teal inline-block" /> Tenet
                   </div>
-                  <div className="bg-teal-soft border-l-2 border-teal rounded-md px-3 py-3">
-                    <div className="flex gap-1.5">
-                      <span className="tenet-dot w-1.5 h-1.5 rounded-full bg-teal inline-block" />
-                      <span className="tenet-dot w-1.5 h-1.5 rounded-full bg-teal inline-block" />
-                      <span className="tenet-dot w-1.5 h-1.5 rounded-full bg-teal inline-block" />
+                  <div
+                    className="bg-surface border border-[#ECEAE4] rounded-lg p-4 w-[80%] tenet-thinking-pulse"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Loader2 className="w-4 h-4 text-teal animate-spin" />
+                        <span className="ml-2 text-[14px] text-ink">Thinking…</span>
+                      </div>
+                      <span className="text-[13px] font-mono text-ink-secondary">{aiElapsed}s</span>
+                    </div>
+                    <div className="mt-3 w-full h-1 rounded-full bg-[#ECEAE4] overflow-hidden">
+                      <div
+                        className="h-1 rounded-full bg-teal"
+                        style={{ width: `${aiProgress}%`, transition: "width 100ms linear" }}
+                      />
                     </div>
                   </div>
                 </div>
