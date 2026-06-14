@@ -80,6 +80,11 @@ function EvaluatePage() {
   const [historyEntry, setHistoryEntry] = useState<HistoryEntry | null>(null);
   const isHistory = !!historyEntry;
 
+  // ai progress state
+  const [aiProgress, setAiProgress] = useState(0);
+  const [aiElapsed, setAiElapsed] = useState(0);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // mic state
   const [micState, setMicState] = useState<"idle" | "recording" | "stopped">("idle");
   const [transcribing, setTranscribing] = useState(false);
@@ -91,6 +96,29 @@ function EvaluatePage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const prevEntriesLenRef = useRef(0);
+  const prevLoadingRef = useRef(false);
+
+  const startAiProgress = () => {
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    const start = Date.now();
+    setAiProgress(0);
+    setAiElapsed(0);
+    progressIntervalRef.current = setInterval(() => {
+      const ms = Date.now() - start;
+      setAiElapsed(Math.floor(ms / 1000));
+      const t = ms / 1000;
+      const p = t < 20 ? (t / 20) * 90 : 90 + 10 * (1 - Math.exp(-(t - 20) / 15));
+      setAiProgress(p);
+    }, 50);
+  };
+  const stopAiProgress = () => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+  };
+  useEffect(() => () => stopAiProgress(), []);
 
   // Hydrate: history-view mode OR in-flight conversation
   useEffect(() => {
