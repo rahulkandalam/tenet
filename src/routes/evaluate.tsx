@@ -451,7 +451,8 @@ function EvaluatePage() {
     (input.trim().length > 0 || micState === "recording") && !loading && !transcribing && !isHistory;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
+
       <header className="h-12 px-5 flex items-center justify-between border-b border-border bg-surface">
         <button onClick={onBack} className="text-[14px] text-ink-secondary hover:text-ink">
           ← Back to Home
