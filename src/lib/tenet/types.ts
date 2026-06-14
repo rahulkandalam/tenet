@@ -57,7 +57,7 @@ export const KNOWN_USERS_KEY = "tenet_known_users";
 // Kept as named export for backward compatibility with anywhere still importing it.
 export const RULEBOOK_KEY = LEGACY_RULEBOOK_KEY;
 
-export const DAILY_LIMIT = 7;
+export const DAILY_LIMIT = 50;
 
 export function getCurrentUser(): string | null {
   if (typeof window === "undefined") return null;
