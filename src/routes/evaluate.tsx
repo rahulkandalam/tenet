@@ -310,7 +310,8 @@ function EvaluatePage() {
   // === Send ===
   const sendMessage = async (textOverride?: string) => {
     const text = (textOverride ?? input).trim();
-    if (!text || loading) return;
+    if (loading) return;
+    if (!text && attachedImages.length === 0) return;
     const rb = loadRulebook();
     if (!rb) {
       toast.error("No rulebook found");
@@ -332,7 +333,9 @@ function EvaluatePage() {
 
     const priorEntries = entries;
     const currentImageIds = attachedImages.map((i) => i.id);
-    const newEntries: ChatEntry[] = [...entries, { kind: "text", role: "user", content: text }];
+    const newEntries: ChatEntry[] = text
+      ? [...entries, { kind: "text", role: "user", content: text }]
+      : [...entries];
     setEntries(newEntries);
     setInput("");
     setLoading(true);
@@ -358,7 +361,7 @@ function EvaluatePage() {
     try {
       const fullHistory = newEntries
         .filter((e): e is Extract<ChatEntry, { kind: "text" }> => e.kind === "text")
-        .slice(0, -1)
+        .slice(0, text ? -1 : undefined)
         .map((e) => ({ role: e.role, content: e.content }));
       const history = fullHistory.slice(-8);
       const payload = {
@@ -448,7 +451,10 @@ function EvaluatePage() {
 
   const isFinal = latest && latest.verdict_word !== "PROMPT";
   const canSend =
-    (input.trim().length > 0 || micState === "recording") && !loading && !transcribing && !isHistory;
+    (input.trim().length > 0 || attachedImages.length > 0 || micState === "recording") &&
+    !loading &&
+    !transcribing &&
+    !isHistory;
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
@@ -683,7 +689,7 @@ function EvaluatePage() {
               <div className="max-w-[720px] mx-auto mt-3 flex justify-end">
                 <button
                   onClick={() => void sendMessage()}
-                  disabled={loading || !input.trim()}
+                  disabled={loading || (!input.trim() && attachedImages.length === 0)}
                   className="px-3 py-1.5 text-[14px] border border-teal text-teal rounded-md hover:bg-teal-soft disabled:opacity-50"
                 >
                   Retry
