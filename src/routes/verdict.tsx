@@ -1,13 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Check, X, CircleDot, Bookmark } from "lucide-react";
+import { Check, X, CircleDot, Bookmark, ThumbsUp, ThumbsDown } from "lucide-react";
 import {
   findHistoryEntry,
+  hashVerdictId,
+  loadFeedbackMap,
   relativeTime,
+  saveFeedback,
   saveHistoryEntry,
   type EvalResponse,
   type HistoryEntry,
+  type VerdictFeedback,
 } from "@/lib/tenet/types";
 
 export const Route = createFileRoute("/verdict")({
