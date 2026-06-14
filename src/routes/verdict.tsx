@@ -1,13 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Check, X, CircleDot, Bookmark } from "lucide-react";
+import { Check, X, CircleDot, Bookmark, ThumbsUp, ThumbsDown } from "lucide-react";
 import {
   findHistoryEntry,
+  hashVerdictId,
+  loadFeedbackMap,
   relativeTime,
+  saveFeedback,
   saveHistoryEntry,
   type EvalResponse,
   type HistoryEntry,
+  type VerdictFeedback,
 } from "@/lib/tenet/types";
 
 export const Route = createFileRoute("/verdict")({
@@ -71,6 +75,65 @@ function VerdictPage() {
 
   const [overrideOpen, setOverrideOpen] = useState(false);
   const [overrideText, setOverrideText] = useState("");
+
+  const [feedback, setFeedback] = useState<VerdictFeedback | null>(null);
+  const [showCommentBox, setShowCommentBox] = useState(false);
+  const [commentDraft, setCommentDraft] = useState("");
+
+  const verdictId = useMemo(() => {
+    if (historyEntry) return historyEntry.id;
+    if (verdict) return hashVerdictId(verdict);
+    return "";
+  }, [historyEntry, verdict]);
+
+  useEffect(() => {
+    if (!verdictId) return;
+    const map = loadFeedbackMap();
+    let fb: VerdictFeedback | null = map[verdictId] ?? null;
+    if (!fb && historyEntry?.feedback_rating) {
+      fb = {
+        rating: historyEntry.feedback_rating,
+        comment: historyEntry.feedback_comment ?? "",
+        timestamp: historyEntry.timestamp,
+        verdict_word: historyEntry.verdict_word,
+      };
+    }
+    if (fb) {
+      setFeedback(fb);
+      setCommentDraft(fb.comment);
+    }
+  }, [verdictId, historyEntry]);
+
+  const onFeedback = (rating: "up" | "down") => {
+    if (!verdict || !verdictId || feedback) return;
+    const fb: VerdictFeedback = {
+      rating,
+      comment: "",
+      timestamp: new Date().toISOString(),
+      verdict_word: verdict.verdict_word,
+    };
+    setFeedback(fb);
+    saveFeedback(verdictId, fb);
+    if (rating === "up") {
+      toast.success("Thanks for the feedback", { duration: 3000 });
+    } else {
+      toast("Thanks for the feedback", {
+        duration: 3000,
+        icon: <ThumbsDown className="w-4 h-4 text-[#B85E00]" />,
+      });
+      setShowCommentBox(true);
+    }
+  };
+
+  const submitComment = () => {
+    if (!feedback || !verdictId) return;
+    const trimmed = commentDraft.trim().slice(0, 280);
+    const updated: VerdictFeedback = { ...feedback, comment: trimmed };
+    setFeedback(updated);
+    saveFeedback(verdictId, updated);
+    setShowCommentBox(false);
+    toast.success("Comment saved", { duration: 2500 });
+  };
 
   const sections = useMemo(() => parseClosingNote(verdict?.closing_note), [verdict]);
 
@@ -143,6 +206,8 @@ function VerdictPage() {
           extracted_plan: ep,
         },
         verdict_full: verdict,
+        feedback_rating: feedback?.rating ?? null,
+        feedback_comment: feedback?.comment ?? "",
       };
       saveHistoryEntry(entry);
       setSaved(true);
@@ -230,6 +295,65 @@ function VerdictPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-6 flex flex-col items-start">
+              <div className="text-[12px] text-[#888] mb-3">Was this useful?</div>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => onFeedback("up")}
+                  disabled={!!feedback && feedback.rating !== "up"}
+                  className={`inline-flex items-center gap-2 rounded-lg text-[14px] transition-colors border ${
+                    feedback?.rating === "up"
+                      ? "bg-teal text-white border-teal"
+                      : feedback
+                        ? "border-[#ECEAE4] text-ink-secondary opacity-40 cursor-not-allowed"
+                        : "border-[#ECEAE4] text-ink hover:bg-[#F5F5F0]"
+                  }`}
+                  style={{ padding: "12px 20px" }}
+                >
+                  <ThumbsUp className="w-4 h-4" /> Helpful
+                </button>
+                <button
+                  onClick={() => onFeedback("down")}
+                  disabled={!!feedback && feedback.rating !== "down"}
+                  className={`inline-flex items-center gap-2 rounded-lg text-[14px] transition-colors border ${
+                    feedback?.rating === "down"
+                      ? "bg-[#B85E00] text-white border-[#B85E00]"
+                      : feedback
+                        ? "border-[#ECEAE4] text-ink-secondary opacity-40 cursor-not-allowed"
+                        : "border-[#ECEAE4] text-ink hover:bg-[#F5F5F0]"
+                  }`}
+                  style={{ padding: "12px 20px" }}
+                >
+                  <ThumbsDown className="w-4 h-4" /> Missed the mark
+                </button>
+              </div>
+              {feedback?.rating === "down" && showCommentBox && (
+                <div className="mt-4 w-full max-w-[520px] flex flex-col gap-2">
+                  <textarea
+                    value={commentDraft}
+                    onChange={(e) => setCommentDraft(e.target.value.slice(0, 280))}
+                    placeholder="Anything specific? (Optional — helps us improve)"
+                    rows={3}
+                    className="w-full px-3 py-2 text-[14px] border border-[#ECEAE4] rounded-md focus:outline-none focus:border-teal resize-none"
+                  />
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-ink-secondary">{commentDraft.length}/280</span>
+                    <button
+                      onClick={submitComment}
+                      className="px-4 py-1.5 bg-teal text-white rounded-md text-[13px] hover:opacity-90"
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </div>
+              )}
+              {feedback?.rating === "down" && !showCommentBox && feedback.comment && (
+                <div className="mt-3 text-[12px] text-ink-secondary italic max-w-[520px]">
+                  Your note: "{feedback.comment}"
+                </div>
+              )}
             </div>
 
             <div className="mt-8 pt-5 border-t border-border flex items-center justify-between gap-3 flex-wrap">

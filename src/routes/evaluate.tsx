@@ -544,6 +544,42 @@ function EvaluatePage() {
                   />
                 );
               })}
+              {(() => {
+                const lastEntry = entries[entries.length - 1];
+                const showQuickReplies =
+                  !loading &&
+                  !isHistory &&
+                  latest?.verdict_word === "PROMPT" &&
+                  lastEntry?.kind === "text" &&
+                  lastEntry.role === "assistant";
+                if (!showQuickReplies) return null;
+                const fq = latest?.follow_up_question || "";
+                const mentionsChart = /chart would help|attach.*chart|a chart would/i.test(fq);
+                return (
+                  <div className="flex flex-wrap items-center gap-2 mt-3 ml-3">
+                    <button
+                      onClick={() => setTimeout(() => taRef.current?.focus(), 0)}
+                      className="h-9 px-4 rounded-md bg-teal text-white text-[14px] font-medium hover:opacity-90"
+                    >
+                      Yes — add context
+                    </button>
+                    <button
+                      onClick={() => void sendMessage("skip")}
+                      className="h-9 px-4 rounded-md border border-[#ECEAE4] text-teal text-[14px] font-medium hover:bg-teal-soft"
+                    >
+                      Skip — evaluate now
+                    </button>
+                    {mentionsChart && (
+                      <button
+                        onClick={onPickFile}
+                        className="h-9 px-4 rounded-md border border-[#ECEAE4] text-teal text-[14px] font-medium hover:bg-teal-soft"
+                      >
+                        Attach chart
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
               {loading && (
                 <div className="flex flex-col items-start gap-1.5 mt-3">
                   <div className="text-[11px] text-ink-secondary flex items-center gap-1.5">
