@@ -86,53 +86,6 @@ export function historyKeyFor(user: string): string {
   return `tenet_${user}_history`;
 }
 
-export function feedbackKeyFor(user: string): string {
-  return `tenet_${user}_verdict_feedback`;
-}
-
-export type VerdictFeedback = {
-  rating: "up" | "down";
-  comment: string;
-  timestamp: string;
-  verdict_word: VerdictWord;
-};
-
-export function loadFeedbackMap(): Record<string, VerdictFeedback> {
-  if (typeof window === "undefined") return {};
-  const user = getCurrentUser();
-  if (!user) return {};
-  try {
-    const raw = localStorage.getItem(feedbackKeyFor(user));
-    if (!raw) return {};
-    const obj = JSON.parse(raw);
-    return obj && typeof obj === "object" ? (obj as Record<string, VerdictFeedback>) : {};
-  } catch {
-    return {};
-  }
-}
-
-export function saveFeedback(verdictId: string, fb: VerdictFeedback): void {
-  if (typeof window === "undefined") return;
-  const user = getCurrentUser();
-  if (!user) return;
-  const cur = loadFeedbackMap();
-  cur[verdictId] = fb;
-  try {
-    localStorage.setItem(feedbackKeyFor(user), JSON.stringify(cur));
-  } catch {
-    // ignore
-  }
-}
-
-export function hashVerdictId(v: EvalResponse): string {
-  const src = `${v.verdict_word}|${v.summary}|${JSON.stringify(v.extracted_plan)}`;
-  let h = 0;
-  for (let i = 0; i < src.length; i++) {
-    h = ((h << 5) - h + src.charCodeAt(i)) | 0;
-  }
-  return `v_${Math.abs(h).toString(36)}`;
-}
-
 export const HISTORY_LIMIT = 20;
 
 export type HistoryEntry = {
@@ -150,8 +103,6 @@ export type HistoryEntry = {
     extracted_plan: ExtractedPlan | null;
   };
   verdict_full: EvalResponse;
-  feedback_rating?: "up" | "down" | null;
-  feedback_comment?: string;
 };
 
 export function loadHistory(): HistoryEntry[] {

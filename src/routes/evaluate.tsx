@@ -310,8 +310,7 @@ function EvaluatePage() {
   // === Send ===
   const sendMessage = async (textOverride?: string) => {
     const text = (textOverride ?? input).trim();
-    if (loading) return;
-    if (!text && attachedImages.length === 0) return;
+    if (!text || loading) return;
     const rb = loadRulebook();
     if (!rb) {
       toast.error("No rulebook found");
@@ -333,9 +332,7 @@ function EvaluatePage() {
 
     const priorEntries = entries;
     const currentImageIds = attachedImages.map((i) => i.id);
-    const newEntries: ChatEntry[] = text
-      ? [...entries, { kind: "text", role: "user", content: text }]
-      : [...entries];
+    const newEntries: ChatEntry[] = [...entries, { kind: "text", role: "user", content: text }];
     setEntries(newEntries);
     setInput("");
     setLoading(true);
@@ -361,7 +358,7 @@ function EvaluatePage() {
     try {
       const fullHistory = newEntries
         .filter((e): e is Extract<ChatEntry, { kind: "text" }> => e.kind === "text")
-        .slice(0, text ? -1 : undefined)
+        .slice(0, -1)
         .map((e) => ({ role: e.role, content: e.content }));
       const history = fullHistory.slice(-8);
       const payload = {
@@ -451,10 +448,7 @@ function EvaluatePage() {
 
   const isFinal = latest && latest.verdict_word !== "PROMPT";
   const canSend =
-    (input.trim().length > 0 || attachedImages.length > 0 || micState === "recording") &&
-    !loading &&
-    !transcribing &&
-    !isHistory;
+    (input.trim().length > 0 || micState === "recording") && !loading && !transcribing && !isHistory;
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background flex flex-col">
@@ -550,42 +544,6 @@ function EvaluatePage() {
                   />
                 );
               })}
-              {(() => {
-                const lastEntry = entries[entries.length - 1];
-                const showQuickReplies =
-                  !loading &&
-                  !isHistory &&
-                  latest?.verdict_word === "PROMPT" &&
-                  lastEntry?.kind === "text" &&
-                  lastEntry.role === "assistant";
-                if (!showQuickReplies) return null;
-                const fq = latest?.follow_up_question || "";
-                const mentionsChart = /chart would help|attach.*chart|a chart would/i.test(fq);
-                return (
-                  <div className="flex flex-wrap items-center gap-2 mt-3 ml-3">
-                    <button
-                      onClick={() => setTimeout(() => taRef.current?.focus(), 0)}
-                      className="h-9 px-4 rounded-md bg-teal text-white text-[14px] font-medium hover:opacity-90"
-                    >
-                      Yes — add context
-                    </button>
-                    <button
-                      onClick={() => void sendMessage("skip")}
-                      className="h-9 px-4 rounded-md border border-[#ECEAE4] text-teal text-[14px] font-medium hover:bg-teal-soft"
-                    >
-                      Skip — evaluate now
-                    </button>
-                    {mentionsChart && (
-                      <button
-                        onClick={onPickFile}
-                        className="h-9 px-4 rounded-md border border-[#ECEAE4] text-teal text-[14px] font-medium hover:bg-teal-soft"
-                      >
-                        Attach chart
-                      </button>
-                    )}
-                  </div>
-                );
-              })()}
               {loading && (
                 <div className="flex flex-col items-start gap-1.5 mt-3">
                   <div className="text-[11px] text-ink-secondary flex items-center gap-1.5">
@@ -689,7 +647,7 @@ function EvaluatePage() {
               <div className="max-w-[720px] mx-auto mt-3 flex justify-end">
                 <button
                   onClick={() => void sendMessage()}
-                  disabled={loading || (!input.trim() && attachedImages.length === 0)}
+                  disabled={loading || !input.trim()}
                   className="px-3 py-1.5 text-[14px] border border-teal text-teal rounded-md hover:bg-teal-soft disabled:opacity-50"
                 >
                   Retry
