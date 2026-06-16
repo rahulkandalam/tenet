@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/tenet/Sidebar";
 import { RulebookForm } from "@/components/tenet/RulebookForm";
-import { loadRulebook, type Rulebook } from "@/lib/tenet/types";
+import { getCurrentUser, loadRulebook, rulebookKeyFor, type Rulebook } from "@/lib/tenet/types";
 
 export const Route = createFileRoute("/rulebook/")({
   head: () => ({ meta: [{ title: "Edit rulebook — Tenet" }] }),
@@ -11,10 +12,15 @@ export const Route = createFileRoute("/rulebook/")({
 
 function RulebookView() {
   const [rb, setRb] = useState<Rulebook | null>(null);
+  const [text, setText] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
-    setRb(loadRulebook());
+    const loaded = loadRulebook();
+    setRb(loaded);
+    if (loaded && loaded.format === "free_text") {
+      setText(loaded.text ?? "");
+    }
     setHydrated(true);
   }, []);
 
@@ -35,14 +41,30 @@ function RulebookView() {
             className="mt-6 bg-surface border border-[#ECEAE4] rounded-lg p-6 overflow-auto"
             style={{ maxHeight: "60vh" }}
           >
-            <pre className="font-mono text-[14px] leading-[1.6] whitespace-pre-wrap text-ink">{rb.text}</pre>
+            <textarea
+              className="w-full min-h-[200px] font-mono text-[14px] leading-[1.6] text-ink bg-transparent focus:outline-none resize-y"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
           </div>
           <div className="mt-6 flex items-center gap-3">
             <button
-              onClick={() => navigate({ to: "/home" })}
+              onClick={() => {
+                const user = getCurrentUser();
+                if (!user) {
+                  toast.error("No active user. Please sign in again.");
+                  return;
+                }
+                const updated: Rulebook = {
+                  ...rb,
+                  text,
+                };
+                localStorage.setItem(rulebookKeyFor(user), JSON.stringify(updated));
+                toast.success("Rulebook saved");
+              }}
               className="px-5 py-2.5 bg-teal text-white text-[14px] font-medium rounded-md hover:opacity-90"
             >
-              Evaluate my trade idea
+              Save my rulebook
             </button>
             <button
               onClick={() => {
