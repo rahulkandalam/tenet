@@ -24,12 +24,9 @@ function IdentityPage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!isAuthed()) {
-      navigate({ to: "/unlock", replace: true });
-      return;
-    }
     inputRef.current?.focus();
   }, [navigate]);
+
 
   const submit = () => {
     const name = value.trim();
