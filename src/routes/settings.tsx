@@ -41,7 +41,7 @@ function SettingsPage() {
     } catch {
       // ignore
     }
-    navigate({ to: "/unlock" });
+    navigate({ to: "/identity" });
   };
 
   return (

@@ -91,15 +91,14 @@ function RouteGuard() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   useEffect(() => {
-    const authed = isAuthed();
     const user = getCurrentUser();
 
-    // 1. Not authed -> /unlock
-    if (!authed) {
-      if (pathname !== "/unlock") navigate({ to: "/unlock", replace: true });
+    // Passphrase gate removed — go straight to identity.
+    if (pathname === "/unlock") {
+      navigate({ to: user ? "/home" : "/identity", replace: true });
       return;
     }
-    // 2. Authed but no user -> /identity
+    // 1. No user -> /identity
     if (!user) {
       if (pathname !== "/identity") navigate({ to: "/identity", replace: true });
       return;

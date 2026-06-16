@@ -7,8 +7,8 @@ import {
   rulebookKeyFor,
   loadRulebookFor,
   isRulebookComplete,
-  isAuthed,
 } from "@/lib/tenet/types";
+
 
 export const Route = createFileRoute("/identity")({
   head: () => ({ meta: [{ title: "Identity — Tenet" }] }),
@@ -24,12 +24,9 @@ function IdentityPage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!isAuthed()) {
-      navigate({ to: "/unlock", replace: true });
-      return;
-    }
     inputRef.current?.focus();
   }, [navigate]);
+
 
   const submit = () => {
     const name = value.trim();
