@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/tenet/Sidebar";
 import { RulebookForm } from "@/components/tenet/RulebookForm";
-import { loadRulebook, type Rulebook } from "@/lib/tenet/types";
+import { getCurrentUser, loadRulebook, rulebookKeyFor, type Rulebook } from "@/lib/tenet/types";
 
 export const Route = createFileRoute("/rulebook/")({
   head: () => ({ meta: [{ title: "Edit rulebook — Tenet" }] }),
