@@ -7,8 +7,8 @@ export const Route = createFileRoute("/rulebook/new")({
   head: () => ({ meta: [{ title: "New rulebook — Tenet" }] }),
   component: () => (
     <AppShell>
-      <RulebookForm mode="new" />
       <RulebookUpload />
+      <RulebookForm mode="new" />
     </AppShell>
   ),
 });
