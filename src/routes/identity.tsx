@@ -7,8 +7,8 @@ import {
   rulebookKeyFor,
   loadRulebookFor,
   isRulebookComplete,
-  isAuthed,
 } from "@/lib/tenet/types";
+
 
 export const Route = createFileRoute("/identity")({
   head: () => ({ meta: [{ title: "Identity — Tenet" }] }),
