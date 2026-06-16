@@ -61,6 +61,7 @@ function RulebookView() {
                 };
                 localStorage.setItem(rulebookKeyFor(user), JSON.stringify(updated));
                 toast.success("Rulebook saved");
+                navigate({ to: "/home" });
               }}
               className="px-5 py-2.5 bg-teal text-white text-[14px] font-medium rounded-md hover:opacity-90"
             >
