@@ -111,6 +111,11 @@ export function RulebookForm({ mode }: { mode: Mode }) {
             </p>
           </>
         )}
+        {mode === "new" && (
+          <p className="text-[14px] italic text-ink-secondary">
+            Capture your strategy and the rules you trade by. Required sections are marked with *.
+          </p>
+        )}
 
         <div className="mt-8 flex flex-col gap-5">
           <SectionCard title="Strategy name" required helper="Give your strategy a name you'll recognise." error={errors.has("strategy_name")}>
