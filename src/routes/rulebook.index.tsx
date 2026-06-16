@@ -12,10 +12,15 @@ export const Route = createFileRoute("/rulebook/")({
 
 function RulebookView() {
   const [rb, setRb] = useState<Rulebook | null>(null);
+  const [text, setText] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
-    setRb(loadRulebook());
+    const loaded = loadRulebook();
+    setRb(loaded);
+    if (loaded && loaded.format === "free_text") {
+      setText(loaded.text ?? "");
+    }
     setHydrated(true);
   }, []);
 
