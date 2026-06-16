@@ -100,15 +100,17 @@ export function RulebookForm({ mode }: { mode: Mode }) {
   return (
     <div className="pb-32">
       <div className="max-w-[880px] mx-auto px-8 pt-8">
-        <div className="text-[13px] text-ink-secondary">
-          Rulebook <span className="mx-1">›</span> {mode === "new" ? "New rulebook" : "Edit"}
-        </div>
-        <h1 className="mt-3 text-[28px] font-semibold tracking-tight">
-          {mode === "new" ? "Set up your rulebook" : "Edit your rulebook"}
-        </h1>
-        <p className="mt-2 text-[14px] italic text-ink-secondary">
-          Capture your strategy and the rules you trade by. Required sections are marked with *.
-        </p>
+        {mode === "edit" && (
+          <>
+            <div className="text-[13px] text-ink-secondary">
+              Rulebook <span className="mx-1">›</span> Edit
+            </div>
+            <h1 className="mt-3 text-[28px] font-semibold tracking-tight">Edit your rulebook</h1>
+            <p className="mt-2 text-[14px] italic text-ink-secondary">
+              Capture your strategy and the rules you trade by. Required sections are marked with *.
+            </p>
+          </>
+        )}
 
         <div className="mt-8 flex flex-col gap-5">
           <SectionCard title="Strategy name" required helper="Give your strategy a name you'll recognise." error={errors.has("strategy_name")}>
