@@ -105,11 +105,6 @@ export function RulebookUpload() {
 
   return (
     <div className="max-w-[880px] mx-auto px-8 mt-10">
-      <div className="flex items-center gap-4 my-6">
-        <div className="flex-1 h-px bg-border" />
-        <div className="text-[12px] uppercase tracking-[0.18em] text-ink-secondary">OR</div>
-        <div className="flex-1 h-px bg-border" />
-      </div>
       <div className="bg-surface border border-border rounded-lg p-6">
         <h3 className="text-[18px] font-semibold">Upload your rulebook</h3>
         <p className="mt-1 text-[14px] text-ink-secondary">
@@ -149,6 +144,11 @@ export function RulebookUpload() {
             if (fileRef.current) fileRef.current.value = "";
           }}
         />
+      </div>
+      <div className="flex items-center gap-4 my-6">
+        <div className="flex-1 h-px bg-border" />
+        <div className="text-[12px] uppercase tracking-[0.18em] text-ink-secondary">OR</div>
+        <div className="flex-1 h-px bg-border" />
       </div>
     </div>
   );
