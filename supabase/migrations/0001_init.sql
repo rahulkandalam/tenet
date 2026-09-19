@@ -164,6 +164,19 @@ create table if not exists public.usage_events (
 );
 create index if not exists usage_user_time on public.usage_events (user_id, created_at desc);
 
+-- Checks used today in the user's own time zone (drives the daily limit).
+create or replace function public.usage_today(p_kind text) returns integer
+language sql stable security invoker set search_path = '' as $$
+  select count(*)::integer
+  from public.usage_events e
+  cross join lateral (
+    select coalesce((select timezone from public.profiles where id = auth.uid()), 'Asia/Kolkata') as tz
+  ) p
+  where e.user_id = auth.uid()
+    and e.kind = p_kind
+    and e.created_at >= (date_trunc('day', now() at time zone p.tz) at time zone p.tz);
+$$;
+
 -- ───────────────────────── row-level security ─────────────────────────
 alter table public.profiles enable row level security;
 alter table public.rulebooks enable row level security;
