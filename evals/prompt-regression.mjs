@@ -5,9 +5,14 @@ const src = fs.readFileSync(new URL("../src/lib/tenet/prompt.ts", import.meta.ur
 const SYSTEM = eval("`" + src.slice(src.indexOf("`") + 1, src.lastIndexOf("`")) + "`");
 const SMC = { qualifying_criteria: ["R1: Markets are in uptrend or downtrend"], entry_rules: ["R2: Price reaching open order block (demand or supply)"],
   exit_rules: ["R3: Stop below or above the order block depending on uptrend or downtrend", "R4: Target is 2R"], risk_management: ["R5: 1% per trade"], soft_meta_rules: [] };
+const SMC2 = { ...SMC, entry_rules: ["R2: Entry at an open order block: demand in an uptrend, supply in a downtrend"] };
 const V1 = { qualifying_criteria: ["R1: Only trade with the daily bias"], entry_rules: ["R2: Entries from a 4H OB or FVG, nothing else"], exit_rules: ["R3: Minimum 3R or I don't take it"],
   risk_management: ["R4: Half a percent risk max per trade", "R5: No entry within 30 minutes of red-folder news"], soft_meta_rules: ["R6: Two trades a day at most"] };
 const CASES = [
+  ["SMC v2 wording: short in uptrend at demand → NO GO", SMC2, "EUR USD is clearly in uptrend on 4H timeframe. Price are about to enter the order block (demand zone). Planning to take a short position", ["NO GO"]],
+  ["SMC v2 wording: long, complete → GO AHEAD", SMC2, "EURUSD 4H uptrend. Long from the demand OB at 1.0850, stop 1.0835 below the block, target 1.0880 (2R). Risking 1%.", ["GO AHEAD"]],
+  ["SMC v2 wording: short at supply, complete → GO AHEAD", SMC2, "GBPUSD 4H downtrend. Short from the supply OB at 1.2710, stop 1.2725 above the block, target 1.2680 which is 2R. 1% risk.", ["GO AHEAD"]],
+  ["SMC v2 wording: long, incomplete → PROMPT", SMC2, "EURUSD in a clear 4H uptrend, price about to tap the 4H demand order block. Planning a long.", ["PROMPT"]],
   ["SMC: short in uptrend at demand, incomplete → NO GO", SMC, "EUR USD is clearly in uptrend on 4H timeframe. Price are about to enter the order block (demand zone). Planning to take a short position", ["NO GO"]],
   ["long, incomplete → PROMPT", SMC, "EURUSD in a clear 4H uptrend, price about to tap the 4H demand order block. Planning a long.", ["PROMPT"]],
   ["long, complete, OB touch not confirmed → CAUTION (trigger rule)", SMC, "EURUSD 4H uptrend. Long from the demand OB at 1.0850, stop 1.0835 below the block, target 1.0880 (2R). Risking 1%.", ["PROCEED WITH CAUTION"]],
