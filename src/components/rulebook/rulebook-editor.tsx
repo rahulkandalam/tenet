@@ -80,7 +80,7 @@ export function RulebookEditor({ initialRules, source, filename, rawText, ignore
           <div className="flex items-center gap-3.5 rounded-lg bg-brand/[.06] px-[18px] py-3.5 ring-1 ring-inset ring-brand/20">
             <FileText className="size-5 shrink-0 text-brand-soft" strokeWidth={1.6} />
             <p className="flex-1 text-sm leading-snug text-[#e4e4e8]">
-              We found {rules.length} rule{rules.length === 1 ? "" : "s"} in <span className="font-medium">{filename}</span>.
+              We found {rules.length} rule{rules.length === 1 ? "" : "s"} in {filename === "Pasted text" ? "your pasted text" : <span className="font-medium">{filename}</span>}.
               {flagged > 0 && ` ${flagged} ${flagged === 1 ? "is" : "are"} flagged for you to check.`} Hard rules can block a
               trade; soft rules can only add caution.
             </p>

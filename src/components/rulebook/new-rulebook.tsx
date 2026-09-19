@@ -18,6 +18,8 @@ export function NewRulebook({ nextVersion }: { nextVersion: number }) {
   const [stage, setStage] = useState<Stage>({ name: "choose" });
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [mode, setMode] = useState<"file" | "paste">("file");
+  const [pasted, setPasted] = useState("");
   const input = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
@@ -31,24 +33,40 @@ export function NewRulebook({ nextVersion }: { nextVersion: number }) {
       const exj = await ex.json();
       if (!ex.ok) throw new Error(exj.error ?? "Could not read that file.");
 
-      setStage({ name: "reading", filename: file.name, step: "structure" });
-      const st = await fetch("/api/rulebook/structure", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: exj.text }),
-      });
-      const stj = await st.json();
-      if (!st.ok) throw new Error(stj.error ?? "Could not sort the rules.");
-      if (!stj.rules?.length) throw new Error("No trading rules found in that document. Try building it section by section.");
+      await structure(exj.text, exj.filename);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setStage({ name: "choose" });
+    }
+  }
 
-      setStage({
-        name: "edit",
-        source: "upload",
-        filename: exj.filename,
-        rawText: exj.text,
-        ignored: stj.ignored ?? [],
-        rules: stj.rules.map((r: { section: Section; kind: "hard" | "soft"; body: string; note: string | null }) => ({ ...r, key: newKey() })),
-      });
+  async function structure(text: string, filename: string) {
+    setStage({ name: "reading", filename, step: "structure" });
+    const st = await fetch("/api/rulebook/structure", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    const stj = await st.json();
+    if (!st.ok) throw new Error(stj.error ?? "Could not sort the rules.");
+    if (!stj.rules?.length) throw new Error("No trading rules found in that text. Try building it section by section.");
+    setStage({
+      name: "edit",
+      source: "upload",
+      filename,
+      rawText: text,
+      ignored: stj.ignored ?? [],
+      rules: stj.rules.map((r: { section: Section; kind: "hard" | "soft"; body: string; note: string | null }) => ({ ...r, key: newKey() })),
+    });
+  }
+
+  async function handlePaste() {
+    const text = pasted.trim();
+    setError(null);
+    if (text.length < 10) return setError("Paste your rules first.");
+    if (text.length > 60_000) return setError("That is over 60,000 characters. Paste the rules section only.");
+    try {
+      await structure(text, "Pasted text");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setStage({ name: "choose" });
@@ -85,10 +103,29 @@ export function NewRulebook({ nextVersion }: { nextVersion: number }) {
           <div className="flex items-start gap-3.5">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-surface-raised"><Upload className="size-5" strokeWidth={1.6} /></span>
             <div className="flex flex-col gap-1">
-              <span className="text-lg font-semibold tracking-[-0.02em]">Upload a document</span>
-              <span className="text-sm leading-snug text-ink-soft">We split it into numbered rules for you to confirm. Your original text is kept.</span>
+              <span className="text-lg font-semibold tracking-[-0.02em]">Import your rules</span>
+              <span className="text-sm leading-snug text-ink-soft">Upload a document or paste the text. We split it into numbered rules for you to confirm. Your original text is kept.</span>
             </div>
           </div>
+          {!reading && (
+            <div role="tablist" aria-label="Import method" className="relative flex h-[38px] rounded-[11px] border border-white/[.08] bg-field p-[3px]">
+              <span
+                className="absolute inset-y-[3px] left-[3px] w-[calc(50%-3px)] rounded-[8px] bg-[#1c1c23] ring-1 ring-inset ring-white/[.08] transition-transform duration-[250ms] ease-[cubic-bezier(.2,.8,.2,1)]"
+                style={{ transform: mode === "paste" ? "translateX(100%)" : "none" }}
+              />
+              {(["file", "paste"] as const).map((m) => (
+                <button
+                  key={m}
+                  role="tab"
+                  aria-selected={mode === m}
+                  onClick={() => setMode(m)}
+                  className={cn("relative flex-1 cursor-pointer text-[13px] transition-colors", mode === m ? "text-ink" : "text-ink-muted")}
+                >
+                  {m === "file" ? "Upload a file" : "Paste text"}
+                </button>
+              ))}
+            </div>
+          )}
           {reading ? (
             <div className="flex min-h-[190px] flex-1 flex-col gap-3.5 rounded-lg bg-field p-[18px] ring-1 ring-inset ring-white/[.06]">
               <div className="flex items-center gap-3">
@@ -97,6 +134,20 @@ export function NewRulebook({ nextVersion }: { nextVersion: number }) {
                 <Loader2 className="size-4 animate-spin text-ink-soft" />
               </div>
               <p className="text-[13px] text-ink-soft">{stage.step === "extract" ? "Reading the file…" : "Finding and numbering your rules. This takes up to a minute."}</p>
+            </div>
+          ) : mode === "paste" ? (
+            <div className="flex flex-1 flex-col gap-3">
+              <textarea
+                aria-label="Paste your rulebook"
+                value={pasted}
+                onChange={(e) => setPasted(e.target.value)}
+                placeholder={"Paste your rules as you have them, in any format.\n\nOnly trade with the daily bias.\nEntries from a 4H OB or FVG, nothing else.\nMinimum 3R or I don't take it.\n…"}
+                className="onyx-field min-h-[190px] flex-1 resize-none p-3.5 text-sm leading-relaxed text-ink placeholder:text-ink-muted"
+              />
+              <div className="flex items-center gap-3">
+                <Button onClick={handlePaste} disabled={!pasted.trim()}>Find my rules</Button>
+                <span className="num text-xs text-ink-muted">{pasted.length.toLocaleString()} / 60,000</span>
+              </div>
             </div>
           ) : (
             <button

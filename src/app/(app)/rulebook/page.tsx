@@ -38,7 +38,7 @@ export default async function RulebookPage({ searchParams }: { searchParams: Pro
             <span>Active since {fmt(active.created_at)}</span>
             <span className="text-[#4a4a52]">·</span>
             <span>{hard} hard, {active.rules.length - hard} soft</span>
-            {active.source_filename && (<><span className="text-[#4a4a52]">·</span><span>from {active.source_filename}</span></>)}
+            {active.source_filename && (<><span className="text-[#4a4a52]">·</span><span>from {active.source_filename === "Pasted text" ? "pasted text" : active.source_filename}</span></>)}
           </div>
           <div className="onyx-card flex min-h-0 flex-1 flex-col overflow-y-auto px-[18px] py-2">
             {SECTIONS.map((s) => {
