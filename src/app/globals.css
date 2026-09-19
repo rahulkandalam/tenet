@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+/*
+ * Onyx design tokens (see Project Tenet · onyx-design-system.md).
+ * Dark only. shadcn/ui variable names map onto Onyx roles; Onyx's violet
+ * accent is exposed as --brand because shadcn uses --accent for hover fills.
+ */
+:root {
+  --radius: 12px;
+
+  --bg: #050506;
+  --surface: #0c0c0f;
+  --surface-raised: #16161c;
+  --field: #0f0f13;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.12);
+  --ink: #f4f4f6;
+  --ink-soft: #a1a1aa;
+  --ink-muted: #80808a;
+  --brand: #8b7cff;
+  --brand-soft: #b7aeff;
+
+  --go: #3dd68c;
+  --caution: #f5b84b;
+  --nogo: #ff6b81;
+  --prompt: #6fb6ff;
+  --win: #6be3a6;
+  --loss: #ff8fa0;
+
+  /* shadcn roles */
+  --background: var(--bg);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--bg);
+  --secondary: #121217;
+  --secondary-foreground: var(--ink);
+  --muted: var(--field);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--surface-raised);
+  --accent-foreground: var(--ink);
+  --destructive: var(--nogo);
+  --border: var(--line);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: var(--brand);
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-fast: 150ms;
+  --motion-base: 250ms;
+  --motion-reveal: 450ms;
+  --motion-morph: 700ms;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-field: var(--field);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-go: var(--go);
+  --color-caution: var(--caution);
+  --color-nogo: var(--nogo);
+  --color-prompt: var(--prompt);
+  --color-win: var(--win);
+  --color-loss: var(--loss);
+
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    color-scheme: dark;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: rgba(139, 124, 255, 0.35);
+  }
+}
+
+@layer components {
+  /* Depth on dark = hairline inset + top highlight, never drop shadows. */
+  .onyx-card {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  .onyx-field {
+    background: var(--field);
+    border: 1px solid var(--input);
+    border-radius: var(--radius-md);
+    transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, background-color var(--motion-fast) ease;
+  }
+  .onyx-field:focus-visible {
+    outline: none;
+    border-color: rgba(139, 124, 255, 0.7);
+    box-shadow: 0 0 0 4px rgba(139, 124, 255, 0.16);
+    background: #121217;
+  }
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
