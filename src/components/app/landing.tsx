@@ -91,7 +91,7 @@ function ProductPreview() {
 
 export function Landing() {
   return (
-    <div className="mx-auto flex w-full max-w-[860px] flex-col gap-20 px-6 py-10 sm:px-12 lg:px-16 lg:py-12">
+    <div className="flex w-full max-w-[860px] flex-col gap-20 px-6 py-10 sm:px-12 lg:px-16 lg:py-12">
       <header className="hidden items-center gap-3 lg:flex">
         <LogoMark />
         <span className="text-lg font-semibold tracking-[-0.02em]">Tenet</span>
