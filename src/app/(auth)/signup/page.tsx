@@ -76,9 +76,6 @@ export default function SignupPage() {
       </Label>
       {error && <p role="alert" className="text-[13px] text-loss">{error}</p>}
       <Button type="submit" size="lg" disabled={busy}>{busy ? "Creating account…" : "Create account"}</Button>
-      <div className="flex items-center gap-3 text-xs text-ink-muted">
-        <span className="h-px flex-1 bg-white/10" />or<span className="h-px flex-1 bg-white/10" />
-      </div>
       <GoogleButton label="Sign up with Google" />
       <p className="text-center text-[13px] text-ink-soft">
         Already have an account?{" "}

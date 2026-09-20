@@ -45,9 +45,6 @@ export default function LoginPage() {
       {error && <p role="alert" className="text-[13px] text-loss">{error}</p>}
       <Suspense fallback={null}>{!error && <LinkError />}</Suspense>
       <Button type="submit" size="lg" disabled={busy}>{busy ? "Logging in…" : "Log in"}</Button>
-      <div className="flex items-center gap-3 text-xs text-ink-muted">
-        <span className="h-px flex-1 bg-white/10" />or<span className="h-px flex-1 bg-white/10" />
-      </div>
       <GoogleButton label="Continue with Google" />
       <p className="text-center text-[13px] text-ink-soft">
         New to Tenet?{" "}
