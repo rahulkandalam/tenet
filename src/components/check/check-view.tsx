@@ -159,21 +159,21 @@ export function CheckView(props: CheckViewProps) {
   const missing = checklist.filter((c) => !c.optional && !c.value).length;
 
   return (
-    <main className="flex min-h-0 flex-1 gap-5 p-6 pt-5">
+    <main className="flex min-h-0 flex-1 gap-5 md:p-6 md:pt-5">
       {/* ───────── Chat ───────── */}
       <section
-        className="onyx-card flex min-w-0 flex-1 flex-col overflow-hidden"
+        className="onyx-card flex min-w-0 flex-1 flex-col overflow-hidden max-md:rounded-none max-md:shadow-none"
         onDragOver={(e) => { if (!complete) e.preventDefault(); }}
         onDrop={(e) => { if (complete) return; e.preventDefault(); addFiles(e.dataTransfer.files); }}
       >
-        <div className="flex items-center justify-between border-b border-white/5 px-5 pb-3 pt-[18px]">
+        <div className="flex items-center justify-between border-b border-white/5 px-4 pb-2.5 pt-3 md:px-5 md:pb-3 md:pt-[18px]">
           <div className="flex flex-col gap-0.5">
-            <span className="text-lg font-semibold tracking-[-0.02em]">Talk it through</span>
+            <span className="text-base font-semibold tracking-[-0.02em] md:text-lg">Talk it through</span>
             <span className="text-[13px] text-ink-muted">Checked against Rulebook v{props.rulebookVersion} only · {props.ruleCount} rules</span>
           </div>
         </div>
 
-        <div ref={listRef} className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-7 py-5">
+        <div ref={listRef} className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-4 py-4 md:px-7 md:py-5">
           {messages.length === 0 && (
             <div className="m-auto flex max-w-[520px] flex-col items-center gap-3 text-center">
               <span className="text-xs font-semibold tracking-[0.1em] text-brand-soft">NEW CHECK</span>
@@ -188,7 +188,7 @@ export function CheckView(props: CheckViewProps) {
             <div key={i} className={cn("flex flex-col gap-2", m.role === "user" ? "items-end" : "items-start")}>
               <div
                 className={cn(
-                  "max-w-[620px] whitespace-pre-wrap px-4 py-3 text-sm leading-relaxed text-[#e4e4e8] ring-1 ring-inset",
+                  "max-w-[88%] whitespace-pre-wrap px-4 py-3 md:max-w-[620px] text-sm leading-relaxed text-[#e4e4e8] ring-1 ring-inset",
                   m.role === "user" ? "rounded-[14px_14px_4px_14px] bg-brand/[.12] ring-brand/25" : "rounded-[14px_14px_14px_4px] bg-[#121217] ring-white/[.06]",
                 )}
               >
@@ -221,6 +221,28 @@ export function CheckView(props: CheckViewProps) {
               )}
             </div>
           )}
+          {complete && result && !busy && (
+            <div className="flex flex-col gap-3 rounded-lg bg-[#0a0a0d] p-3 ring-1 ring-inset ring-white/[.06] lg:hidden">
+              <div className={cn("flex flex-col gap-2 rounded-md px-3.5 py-3 ring-1 ring-inset", VERDICT_STYLE[result.verdict_word].panel)}>
+                <VerdictChip verdict={result.verdict_word} />
+                <p className="text-sm leading-snug text-[#e4e4e8]">{result.summary}</p>
+              </div>
+              <div className="flex flex-col">
+                {result.rules.map((r, i) => (
+                  <div key={i} className="flex items-center gap-2.5 border-b border-white/[.04] px-1 py-2 last:border-0">
+                    <span className="min-w-0 flex-1 text-[13px] leading-snug">{r.label}</span>
+                    <StatusPill tone={ruleTone(r)} />
+                  </div>
+                ))}
+              </div>
+              {checkId && <DecisionActions checkId={checkId} verdict={result.verdict_word} initial={props.initialDecision} stacked />}
+              {checkId && (
+                <Link href={`/check/${checkId}/verdict`} className="inline-flex items-center gap-1.5 self-start text-[13px] text-brand-soft">
+                  Full verdict and notes <ArrowUpRight className="size-3.5" />
+                </Link>
+              )}
+            </div>
+          )}
           {complete && !busy && (
             <div className="flex items-center gap-2 self-center pt-2 text-[13px] text-ink-muted">
               This check is complete.
@@ -230,7 +252,23 @@ export function CheckView(props: CheckViewProps) {
         </div>
 
         {!complete && (
-          <div className="flex flex-col gap-2 border-t border-white/5 px-3.5 pb-3.5 pt-3">
+          <div className="flex flex-col gap-2 border-t border-white/5 px-3 pb-3 pt-2.5 md:px-3.5 md:pb-3.5 md:pt-3">
+            {result && (
+              <div aria-label="Plan details" className="-mx-3 flex gap-1.5 overflow-x-auto px-3 pb-0.5 lg:hidden">
+                {checklist.map((c) => (
+                  <span
+                    key={c.key}
+                    className={cn(
+                      "inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs ring-1 ring-inset",
+                      c.value ? "text-ink-soft ring-white/10" : c.optional ? "text-ink-muted ring-white/[.06]" : "bg-prompt/[.08] text-prompt ring-prompt/30",
+                    )}
+                  >
+                    {c.value ? <Check className="size-3 text-go" strokeWidth={2.6} /> : <CircleHelp className="size-3" />}
+                    {c.label}
+                  </span>
+                ))}
+              </div>
+            )}
             {pending.length > 0 && (
               <div className="flex gap-2 px-1">
                 {pending.map((p, i) => (
@@ -275,7 +313,7 @@ export function CheckView(props: CheckViewProps) {
                 <ArrowRight />
               </Button>
             </div>
-            <div className="flex justify-between px-1 text-xs text-ink-muted">
+            <div className="hidden justify-between px-1 text-xs text-ink-muted sm:flex">
               <span>Enter to send · Shift+Enter for a new line · paste or drop charts</span>
               <span className="num">{used} / {props.usage.limit} today</span>
             </div>
@@ -284,7 +322,7 @@ export function CheckView(props: CheckViewProps) {
       </section>
 
       {/* ───────── Panel ───────── */}
-      <aside className="onyx-card flex w-[360px] shrink-0 flex-col overflow-y-auto">
+      <aside className="onyx-card hidden w-[360px] shrink-0 flex-col overflow-y-auto lg:flex">
         {busy ? (
           <div className="m-3.5 flex flex-col gap-3 rounded-lg bg-brand/[.05] p-5 ring-1 ring-inset ring-brand/20">
             <span className="text-xs font-semibold tracking-[0.1em] text-brand-soft">EVALUATING</span>

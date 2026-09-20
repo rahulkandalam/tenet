@@ -89,9 +89,9 @@ export function NewRulebook({ nextVersion }: { nextVersion: number }) {
 
   const reading = stage.name === "reading";
   return (
-    <main className="flex flex-1 flex-col gap-7 overflow-y-auto px-10 py-7">
+    <main className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-5 md:gap-7 md:px-10 md:py-7">
       <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-semibold tracking-[-0.035em]">Bring your rulebook</h1>
+        <h1 className="text-[28px] font-semibold tracking-[-0.035em] md:text-4xl">Bring your rulebook</h1>
         <p className="max-w-[680px] text-[15px] leading-normal text-ink-soft">
           Tenet checks trades against these rules and nothing else. Each rule gets a number, and every verdict cites those numbers.
           Saving creates a new version; past checks keep the version they ran against.
@@ -99,7 +99,7 @@ export function NewRulebook({ nextVersion }: { nextVersion: number }) {
       </div>
       {error && <p role="alert" className="text-sm text-loss">{error}</p>}
       <div className="grid flex-1 grid-cols-1 gap-5 lg:grid-cols-2">
-        <div className="onyx-card flex flex-col gap-4 p-6">
+        <div className="onyx-card flex flex-col gap-4 p-4 md:p-6">
           <div className="flex items-start gap-3.5">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-surface-raised"><Upload className="size-5" strokeWidth={1.6} /></span>
             <div className="flex flex-col gap-1">
@@ -167,7 +167,7 @@ export function NewRulebook({ nextVersion }: { nextVersion: number }) {
           )}
           <input ref={input} type="file" accept=".txt,.md,.docx,.pdf" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
         </div>
-        <div className="onyx-card flex flex-col gap-4 p-6">
+        <div className="onyx-card flex flex-col gap-4 p-4 md:p-6">
           <div className="flex items-start gap-3.5">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-surface-raised"><ListChecks className="size-5" strokeWidth={1.6} /></span>
             <div className="flex flex-col gap-1">

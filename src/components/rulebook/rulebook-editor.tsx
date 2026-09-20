@@ -74,7 +74,7 @@ export function RulebookEditor({ initialRules, source, filename, rawText, ignore
   }
 
   return (
-    <main className="flex min-h-0 flex-1 gap-5 p-6 pt-5">
+    <main className="flex min-h-0 flex-1 gap-5 p-3 md:p-6 md:pt-5">
       <section className="flex min-w-0 flex-1 flex-col gap-3.5">
         {source === "upload" && (
           <div className="flex items-center gap-3.5 rounded-lg bg-brand/[.06] px-[18px] py-3.5 ring-1 ring-inset ring-brand/20">
@@ -86,7 +86,7 @@ export function RulebookEditor({ initialRules, source, filename, rawText, ignore
             </p>
           </div>
         )}
-        <div className="onyx-card flex min-h-0 flex-1 flex-col overflow-y-auto px-[18px] py-2">
+        <div className="onyx-card flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-2 md:px-[18px]">
           {SECTIONS.map((s) => {
             const list = ordered.filter((r) => r.section === s.key);
             return (
@@ -101,21 +101,21 @@ export function RulebookEditor({ initialRules, source, filename, rawText, ignore
                 {list.length === 0 && <p className="px-1 pb-1 text-[13px] text-ink-muted">{s.hint}</p>}
                 {list.map((r, i) => (
                   <div key={r.key} className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 rounded-md px-1 py-1">
+                    <div className="flex flex-wrap items-center gap-2 rounded-md px-1 py-1 sm:flex-nowrap">
                       <span className="num w-7 shrink-0 text-xs text-ink-muted">{codeOf(r.key)}</span>
                       <input
                         aria-label={`${codeOf(r.key)} text`}
                         value={r.body}
                         onChange={(e) => update(r.key, { body: e.target.value })}
                         placeholder="Write the rule in your own words"
-                        className={cn("onyx-field h-10 min-w-0 flex-1 px-3 text-sm text-ink placeholder:text-ink-muted", r.note && "border-prompt/45")}
+                        className={cn("onyx-field order-last h-10 w-full min-w-0 px-3 text-sm text-ink placeholder:text-ink-muted sm:order-none sm:w-auto sm:flex-1", r.note && "border-prompt/45")}
                       />
                       <button
                         type="button"
                         onClick={() => update(r.key, { kind: (r.kind === "hard" ? "soft" : "hard") as Kind })}
                         aria-label={`${codeOf(r.key)} is ${r.kind}. Switch.`}
                         className={cn(
-                          "h-[30px] w-16 shrink-0 cursor-pointer rounded-full text-xs font-semibold transition-colors",
+                          "ml-auto h-[30px] w-16 shrink-0 cursor-pointer rounded-full text-xs font-semibold transition-colors sm:ml-0",
                           r.kind === "hard" ? "bg-surface-raised text-[#e4e4e8]" : "bg-brand/[.12] text-brand-soft",
                         )}
                       >
@@ -134,7 +134,7 @@ export function RulebookEditor({ initialRules, source, filename, rawText, ignore
                       </button>
                     </div>
                     {r.note && (
-                      <div className="mb-1.5 ml-10 flex items-start gap-2 text-xs text-prompt">
+                      <div className="mb-1.5 ml-1 flex items-start gap-2 text-xs text-prompt sm:ml-10">
                         <CircleHelp className="mt-px size-3.5 shrink-0" />
                         <span className="flex-1">{r.note}</span>
                         <button type="button" onClick={() => update(r.key, { note: null })} className="cursor-pointer text-ink-muted hover:text-ink">

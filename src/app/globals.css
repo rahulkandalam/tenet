@@ -147,3 +147,8 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Unlayered so it beats utility classes: iOS Safari zooms into inputs under 16px. */
+@media (max-width: 767px) {
+  input, textarea, select { font-size: 16px; }
+}

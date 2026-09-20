@@ -36,7 +36,7 @@ function RailLink({ href, label, icon: Icon }: (typeof NAV)[number]) {
 
 export function Rail({ initials }: { initials: string }) {
   return (
-    <aside className="flex w-[76px] shrink-0 flex-col items-center gap-[22px] border-r border-white/[.06] bg-[#08080a] py-[18px]">
+    <aside className="hidden w-[76px] shrink-0 flex-col md:flex items-center gap-[22px] border-r border-white/[.06] bg-[#08080a] py-[18px]">
       <LogoMark />
       <nav aria-label="Main" className="flex flex-col gap-1.5">
         {NAV.map((n) => <RailLink key={n.href} {...n} />)}

@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -59,32 +60,32 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
   return (
     <>
       <CheckHeader crumbs={["Journal"]} used={usage.used} limit={usage.limit} />
-      <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-6 pt-5">
+      <main className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 md:gap-4 md:p-6 md:pt-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <nav aria-label="Date range" className="flex h-[38px] rounded-[11px] border border-white/[.08] bg-field p-[3px]">
+          <nav aria-label="Date range" className="flex h-[38px] w-full rounded-[11px] border border-white/[.08] bg-field p-[3px] sm:w-auto">
             {RANGES.map((r) => (
               <Link
                 key={r.key}
                 href={href(r.key, filter.key)}
                 aria-current={r.key === range.key ? "page" : undefined}
-                className={cn("flex items-center rounded-[8px] px-4 text-[13px] transition-colors", r.key === range.key ? "bg-[#1c1c23] text-ink ring-1 ring-inset ring-white/[.08]" : "text-ink-muted hover:text-ink")}
+                className={cn("flex flex-1 items-center justify-center rounded-[8px] px-3 text-[13px] transition-colors sm:flex-none sm:px-4", r.key === range.key ? "bg-[#1c1c23] text-ink ring-1 ring-inset ring-white/[.08]" : "text-ink-muted hover:text-ink")}
               >
                 {r.label}
               </Link>
             ))}
           </nav>
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="-mx-3 flex items-center gap-1.5 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
             {FILTERS.map((f) => (
               <Link
                 key={f.key}
                 href={href(range.key, f.key)}
                 aria-current={f.key === filter.key ? "true" : undefined}
-                className={cn("flex h-[34px] items-center rounded-full px-3 text-[13px] ring-1 ring-inset transition-colors", f.key === filter.key ? "bg-surface-raised text-ink ring-white/[.14]" : "text-ink-soft ring-white/[.07] hover:text-ink")}
+                className={cn("flex h-[34px] shrink-0 items-center rounded-full px-3 text-[13px] ring-1 ring-inset transition-colors", f.key === filter.key ? "bg-surface-raised text-ink ring-white/[.14]" : "text-ink-soft ring-white/[.07] hover:text-ink")}
               >
                 {f.label}
               </Link>
             ))}
-            <Button asChild size="sm" variant="ghost" className="ml-1">
+            <Button asChild size="sm" variant="ghost" className="ml-1 shrink-0">
               <a href="/api/export" download><Download /> Export CSV</a>
             </Button>
           </div>
@@ -92,16 +93,16 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
 
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           {kpis(rows).map((k) => (
-            <div key={k.label} className="onyx-card flex flex-col gap-1.5 px-[18px] py-4">
+            <div key={k.label} className="onyx-card flex flex-col gap-1 px-4 py-3.5 md:gap-1.5 md:px-[18px] md:py-4">
               <span className="text-xs text-ink-muted">{k.label}</span>
-              <span className="num text-[26px] font-medium tracking-[-0.02em]">{k.value}</span>
+              <span className="num text-[22px] font-medium tracking-[-0.02em] md:text-[26px]">{k.value}</span>
               <span className="text-xs text-ink-soft">{k.sub}</span>
             </div>
           ))}
         </div>
 
         <div className="onyx-card flex flex-col p-2">
-          <div className="grid grid-cols-[112px_92px_56px_220px_90px_64px_64px_52px_minmax(0,1fr)] gap-3 border-b border-white/5 px-3.5 py-2.5 text-xs text-ink-muted">
+          <div className="hidden grid-cols-[112px_92px_56px_220px_90px_64px_64px_52px_minmax(0,1fr)] gap-3 border-b border-white/5 px-3.5 py-2.5 text-xs text-ink-muted xl:grid">
             <span>Checked</span><span>Pair</span><span>Side</span><span>Verdict</span><span>Decision</span>
             <span className="text-right">R:R</span><span className="text-right">Risk</span><span className="text-right">Met</span><span>Summary</span>
           </div>
@@ -116,11 +117,27 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
               const dir = (p.direction ?? "").toUpperCase();
               const passed = r.rules.filter((x) => x.status === "Passed").length;
               const open = r.verdict === "PROMPT";
+              const to = open ? `/check/${r.id}` : `/check/${r.id}/verdict`;
+              const decisionLabel = open ? "Unfinished" : r.decision ? DECISION[r.decision].label : "Not logged";
+              const decisionCls = open ? "text-prompt" : r.decision ? DECISION[r.decision].cls : "text-ink-muted";
               return (
+                <Fragment key={r.id}>
+                <Link href={to} className="flex flex-col gap-2 border-b border-white/[.05] px-2.5 py-3 last:border-0 xl:hidden">
+                  <div className="flex items-center gap-2 text-[13px]">
+                    <span className="num font-medium">{p.pair ?? "—"}</span>
+                    <span className={dir === "SHORT" ? "text-loss" : dir === "LONG" ? "text-win" : "text-ink-muted"}>{dir ? dir[0] + dir.slice(1).toLowerCase() : ""}</span>
+                    <span className="num ml-auto text-xs text-ink-muted">{formatWhen(r.created_at, tz)}</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    {r.verdict && <VerdictChip verdict={r.verdict} className="py-1 text-[10.5px] tracking-[0.06em]" />}
+                    <span className={cn("text-xs", decisionCls)}>{decisionLabel}</span>
+                    <span className="num ml-auto text-xs text-ink-muted">{[p.rr_ratio ? `${p.rr_ratio}R` : null, r.rules.length ? `${passed}/${r.rules.length} met` : null].filter(Boolean).join(" · ")}</span>
+                  </div>
+                  {r.summary && <p className="line-clamp-2 text-[13px] leading-snug text-ink-soft">{r.summary}</p>}
+                </Link>
                 <Link
-                  key={r.id}
-                  href={open ? `/check/${r.id}` : `/check/${r.id}/verdict`}
-                  className="grid grid-cols-[112px_92px_56px_220px_90px_64px_64px_52px_minmax(0,1fr)] items-center gap-3 rounded-md px-3.5 py-[11px] transition-colors hover:bg-[#121217]"
+                  href={to}
+                  className="hidden grid-cols-[112px_92px_56px_220px_90px_64px_64px_52px_minmax(0,1fr)] items-center gap-3 rounded-md px-3.5 py-[11px] transition-colors hover:bg-[#121217] xl:grid"
                 >
                   <span className="num text-[13px] text-ink-soft">{formatWhen(r.created_at, tz)}</span>
                   <span className="num truncate text-[13px]">{p.pair ?? "—"}</span>
@@ -134,6 +151,7 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
                   <span className="num text-right text-[13px] text-ink-soft">{r.rules.length ? `${passed}/${r.rules.length}` : "—"}</span>
                   <span className="truncate text-[13px] text-ink-soft">{r.summary}</span>
                 </Link>
+                </Fragment>
               );
             })
           )}

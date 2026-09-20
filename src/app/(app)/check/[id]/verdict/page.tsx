@@ -45,24 +45,24 @@ export default async function VerdictPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <PageHeader crumbs={["Check", `${title} · ${when(data.check.created_at)}`]}>
-        <Button asChild size="sm" variant="secondary"><Link href={`/check/${id}`}>Open conversation</Link></Button>
-        <Button asChild size="sm"><Link href="/check">New check</Link></Button>
+        <Button asChild size="sm" variant="secondary"><Link href={`/check/${id}`}><span className="sm:hidden">Chat</span><span className="hidden sm:inline">Open conversation</span></Link></Button>
+        <Button asChild size="sm" className="hidden sm:inline-flex"><Link href="/check">New check</Link></Button>
       </PageHeader>
-      <main className="flex min-h-0 flex-1 gap-5 overflow-y-auto p-6 pt-5">
+      <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-3 md:p-6 md:pt-5 lg:flex-row lg:gap-5">
         <section className="flex min-w-0 flex-1 flex-col gap-4">
-          <div className={cn("flex items-center gap-6 rounded-xl px-6 py-[22px] ring-1 ring-inset", s.panel)}>
+          <div className={cn("flex items-center gap-4 rounded-xl px-4 py-4 ring-1 ring-inset md:gap-6 md:px-6 md:py-[22px]", s.panel)}>
             <div className="flex flex-1 flex-col gap-2.5">
               <VerdictChip verdict={r.verdict_word} />
-              <p className="text-xl leading-snug tracking-[-0.015em] text-[#f0f0f2]">{r.summary}</p>
+              <p className="text-base leading-snug tracking-[-0.015em] text-[#f0f0f2] md:text-xl">{r.summary}</p>
             </div>
             {r.rules.length > 0 && (
-              <div className="relative size-[88px] shrink-0">
-                <svg width="88" height="88" viewBox="0 0 76 76" aria-hidden>
+              <div className="relative size-16 shrink-0 md:size-[88px]">
+                <svg viewBox="0 0 76 76" aria-hidden className="size-full">
                   <circle cx="38" cy="38" r="31" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="5" />
                   <circle cx="38" cy="38" r="31" fill="none" stroke={ringColor} strokeWidth="5" strokeLinecap="round" transform="rotate(-90 38 38)" strokeDasharray={`${(met / r.rules.length) * circ} ${circ}`} />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="num text-xl font-medium">{met}/{r.rules.length}</span>
+                  <span className="num text-base font-medium md:text-xl">{met}/{r.rules.length}</span>
                   <span className="text-[10px] tracking-[0.06em] text-ink-muted">MET</span>
                 </div>
               </div>
@@ -102,7 +102,7 @@ export default async function VerdictPage({ params }: { params: Promise<{ id: st
           </div>
         </section>
 
-        <aside className="flex w-[380px] shrink-0 flex-col gap-4">
+        <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-[380px]">
           <div className="onyx-card flex flex-col gap-3 p-[18px]">
             <span className="text-xs font-semibold tracking-[0.1em] text-ink-muted">YOUR DECISION</span>
             <DecisionActions checkId={id} verdict={r.verdict_word} initial={data.decision} />

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Rail } from "@/components/app/rail";
+import { TabBar } from "@/components/app/tab-bar";
 
 function initialsOf(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -16,7 +17,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-dvh overflow-hidden">
       <Rail initials={initialsOf(name)} />
-      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        {children}
+        <TabBar />
+      </div>
     </div>
   );
 }

@@ -8,10 +8,10 @@ export const metadata = { title: "Settings" };
 
 function Row({ k, children, action }: { k: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-4 border-t border-white/5 py-3.5">
-      <span className="w-44 shrink-0 text-sm text-ink-soft">{k}</span>
+    <div className="flex flex-col gap-1.5 border-t border-white/5 py-3.5 sm:flex-row sm:items-center sm:gap-4">
+      <span className="shrink-0 text-sm text-ink-soft sm:w-44">{k}</span>
       <div className="min-w-0 flex-1 text-sm">{children}</div>
-      {action}
+      {action && <div className="self-start sm:self-auto">{action}</div>}
     </div>
   );
 }
@@ -38,7 +38,7 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader crumbs={["Settings"]} />
-      <main className="grid flex-1 content-start gap-4 overflow-y-auto p-6 lg:grid-cols-2">
+      <main className="grid flex-1 content-start gap-3 overflow-y-auto p-3 md:gap-4 md:p-6 lg:grid-cols-2">
         <Card title="Account">
           <Row k="Email">{user?.email}</Row>
           <Row k="Name">{(user?.user_metadata?.full_name as string) || (user?.user_metadata?.name as string) || "Not set"}</Row>

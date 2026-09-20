@@ -21,11 +21,11 @@ export default async function RulebookPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <PageHeader crumbs={["Rulebook"]}>
-        <span className="num rounded-full bg-go/10 px-2.5 py-0.5 text-xs text-go">v{active.version} · active</span>
-        <Button asChild size="sm" variant="secondary"><Link href="/rulebook/new">Upload new version</Link></Button>
+        <span className="num hidden rounded-full bg-go/10 px-2.5 py-0.5 text-xs text-go sm:inline">v{active.version} · active</span>
+        <Button asChild size="sm" variant="secondary"><Link href="/rulebook/new"><span className="sm:hidden">Import</span><span className="hidden sm:inline">Upload new version</span></Link></Button>
         <Button asChild size="sm"><Link href="/rulebook/edit">Edit rules</Link></Button>
       </PageHeader>
-      <main className="flex min-h-0 flex-1 gap-5 p-6 pt-5">
+      <main className="flex min-h-0 flex-1 gap-5 p-3 md:p-6 md:pt-5">
         <section className="flex min-w-0 flex-1 flex-col gap-3.5">
           {sp.saved && (
             <div className="flex items-center gap-3 rounded-lg bg-go/[.06] px-[18px] py-3 text-sm ring-1 ring-inset ring-go/20">
@@ -34,13 +34,13 @@ export default async function RulebookPage({ searchParams }: { searchParams: Pro
               <Button asChild size="sm"><Link href="/check">Check a trade</Link></Button>
             </div>
           )}
-          <div className="flex items-center gap-3.5 text-[13px] text-ink-soft">
+          <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-[13px] text-ink-soft">
             <span>Active since {fmt(active.created_at)}</span>
             <span className="text-[#4a4a52]">·</span>
             <span>{hard} hard, {active.rules.length - hard} soft</span>
             {active.source_filename && (<><span className="text-[#4a4a52]">·</span><span>from {active.source_filename === "Pasted text" ? "pasted text" : active.source_filename}</span></>)}
           </div>
-          <div className="onyx-card flex min-h-0 flex-1 flex-col overflow-y-auto px-[18px] py-2">
+          <div className="onyx-card flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-2 md:px-[18px]">
             {SECTIONS.map((s) => {
               const list = active.rules.filter((r) => r.section === s.key);
               if (!list.length) return null;
