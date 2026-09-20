@@ -74,3 +74,35 @@ export async function getCheck(supabase: SupabaseClient, id: string) {
     ruleCount: rb?.rules?.[0]?.count ?? 0,
   };
 }
+
+export type JournalRow = {
+  id: string;
+  created_at: string;
+  status: "open" | "complete";
+  verdict: "GO AHEAD" | "PROCEED WITH CAUTION" | "NO GO" | "PROMPT" | null;
+  summary: string | null;
+  extracted_plan: Record<string, string | null> | null;
+  decision: "taken" | "skipped" | "override" | null;
+  rules: { rule_code: string | null; status: string; explanation: string | null }[];
+};
+
+export async function getTimezone(supabase: SupabaseClient) {
+  const { data } = await supabase.from("profiles").select("timezone").maybeSingle();
+  return (data?.timezone as string | undefined) ?? "Asia/Kolkata";
+}
+
+export async function getJournal(supabase: SupabaseClient, since: Date | null, limit = 300): Promise<JournalRow[]> {
+  let q = supabase
+    .from("checks")
+    .select("id, created_at, status, verdict, summary, extracted_plan, decisions(decision), rule_results(rule_code, status, explanation)")
+    .not("verdict", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (since) q = q.gte("created_at", since.toISOString());
+  const { data } = await q;
+  return (data ?? []).map((c) => {
+    const d = c.decisions as unknown as { decision: JournalRow["decision"] } | { decision: JournalRow["decision"] }[] | null;
+    const decision = Array.isArray(d) ? d[0]?.decision ?? null : d?.decision ?? null;
+    return { ...(c as unknown as JournalRow), decision, rules: (c.rule_results as JournalRow["rules"]) ?? [] };
+  });
+}

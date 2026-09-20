@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GoogleButton } from "@/components/app/google-button";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -75,6 +76,10 @@ export default function SignupPage() {
       </Label>
       {error && <p role="alert" className="text-[13px] text-loss">{error}</p>}
       <Button type="submit" size="lg" disabled={busy}>{busy ? "Creating account…" : "Create account"}</Button>
+      <div className="flex items-center gap-3 text-xs text-ink-muted">
+        <span className="h-px flex-1 bg-white/10" />or<span className="h-px flex-1 bg-white/10" />
+      </div>
+      <GoogleButton label="Sign up with Google" />
       <p className="text-center text-[13px] text-ink-soft">
         Already have an account?{" "}
         <Link href="/login" className="text-brand-soft hover:text-ink">Log in</Link>

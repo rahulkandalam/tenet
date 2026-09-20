@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GoogleButton } from "@/components/app/google-button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,12 +27,6 @@ export default function LoginPage() {
     router.refresh();
   }
 
-  async function google() {
-    await createClient().auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/check` },
-    });
-  }
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-[18px]">
@@ -48,15 +43,22 @@ export default function LoginPage() {
         <Input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
       </Label>
       {error && <p role="alert" className="text-[13px] text-loss">{error}</p>}
+      <Suspense fallback={null}>{!error && <LinkError />}</Suspense>
       <Button type="submit" size="lg" disabled={busy}>{busy ? "Logging in…" : "Log in"}</Button>
       <div className="flex items-center gap-3 text-xs text-ink-muted">
         <span className="h-px flex-1 bg-white/10" />or<span className="h-px flex-1 bg-white/10" />
       </div>
-      <Button type="button" variant="secondary" size="lg" onClick={google}>Continue with Google</Button>
+      <GoogleButton label="Continue with Google" />
       <p className="text-center text-[13px] text-ink-soft">
         New to Tenet?{" "}
         <Link href="/signup" className="text-brand-soft hover:text-ink">Create account</Link>
       </p>
     </form>
   );
+}
+
+function LinkError() {
+  const params = useSearchParams();
+  if (params.get("error") !== "link") return null;
+  return <p role="alert" className="text-[13px] text-loss">That sign-in link has expired or was already used. Please log in again.</p>;
 }
