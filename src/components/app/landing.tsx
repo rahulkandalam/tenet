@@ -92,7 +92,7 @@ function ProductPreview() {
 export function Landing() {
   return (
     <div className="mx-auto flex w-full max-w-[860px] flex-col gap-20 px-6 py-10 sm:px-12 lg:px-16 lg:py-12">
-      <header className="flex items-center gap-3">
+      <header className="hidden items-center gap-3 lg:flex">
         <LogoMark />
         <span className="text-lg font-semibold tracking-[-0.02em]">Tenet</span>
         <span className="text-[13px] text-ink-muted">by Stoic Traders Club</span>
@@ -130,7 +130,7 @@ export function Landing() {
       <section className="flex flex-col gap-8">
         <div className="flex flex-col gap-2">
           <span className="text-xs font-semibold tracking-[0.12em] text-ink-muted">THE VERDICTS</span>
-          <h2 className="text-[32px] font-semibold tracking-[-0.035em]">Four answers, never a maybe.</h2>
+          <h2 className="text-[32px] font-semibold tracking-[-0.035em]">Four clear answers.</h2>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {VERDICTS.map((v) => (
